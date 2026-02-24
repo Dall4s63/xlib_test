@@ -6,10 +6,10 @@ SHELL = /bin/zsh
 objects = main.o
 
 all: $(objects) 
-	$(CC) $(CFLAGS) $^ -o bin/main $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ --debug -o bin/main $(LDFLAGS)
 
 $(objects): %.o: %.c
-	$(CC) $(CFLAGS) -c $^ -o $@
+	$(CC) $(CFLAGS) --debug -c $^ -o $@
 
 run:
 	bin/main
