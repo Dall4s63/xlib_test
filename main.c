@@ -29,7 +29,7 @@ int main(void)
     XSetWindowAttributes w_attr;
     w_attr.event_mask = StructureNotifyMask;
 
-    Window w = XCreateWindow(d, s->root, 0, 0, 100, 100, 0,
+    Window w = XCreateWindow(d, s->root, 0, 0, 600, 400, 0,
         CopyFromParent, InputOutput, CopyFromParent, CWEventMask, &w_attr);
 
     XMapWindow(d, w);
@@ -39,8 +39,9 @@ int main(void)
     // printf("window width: %d, height: %d\n", w_attr.width, w_attr.height);
 
     // XFlush(d);
+    
     printf("Events pending: %d\n", XPending(d));
-
+    
     getchar();
 
     return 0;
