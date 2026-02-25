@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include <X11/Xlib.h>
+// #include <X11/Xcms.h>
 
 int main(void) 
 {
@@ -23,14 +24,17 @@ int main(void)
 
     Screen *s = DefaultScreenOfDisplay(d);
 
-    // Visual *v = DefaultVisualOfScreen(s);
+    Visual *v = DefaultVisualOfScreen(s);
+    printf("Visual Id: %d\n", TrueColor);
     // VisualID vid = XVisualIDFromVisual(v);
 
     XSetWindowAttributes w_attr;
+    w_attr.background_pixel = 0x202020;
     w_attr.event_mask = StructureNotifyMask;
+    unsigned long w_attr_mask = CWEventMask | CWBackPixel;
 
     Window w = XCreateWindow(d, s->root, 0, 0, 600, 400, 0,
-        CopyFromParent, InputOutput, CopyFromParent, CWEventMask, &w_attr);
+        CopyFromParent, InputOutput, CopyFromParent, w_attr_mask, &w_attr);
 
     XMapWindow(d, w);
 
