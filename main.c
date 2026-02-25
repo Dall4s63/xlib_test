@@ -23,8 +23,8 @@ int main(void)
 
     Screen *s = DefaultScreenOfDisplay(d);
 
-    Visual *v = DefaultVisualOfScreen(s);
-    VisualID vid = XVisualIDFromVisual(v);
+    // Visual *v = DefaultVisualOfScreen(s);
+    // VisualID vid = XVisualIDFromVisual(v);
 
     XSetWindowAttributes w_attr;
     w_attr.event_mask = StructureNotifyMask;
@@ -34,6 +34,16 @@ int main(void)
 
     XMapWindow(d, w);
 
+    // GC gc = XCreateGC(d, w, 0, NULL);
+    GC gc = DefaultGC(d, XScreenNumberOfScreen(s));
+
+    XClearArea(d, w, 0, 0, 600, 200, false);
+    XDrawLine(d, w, gc, 100, 100, 200, 200);
+
+    printf("white pixel %lx\n", WhitePixel(d, 0));
+    // XSetForeground(d, gc, WhitePixel(d, 0));
+    XSetForeground(d, gc, 0xff00ff);
+
     // XWindowAttributes w_attr;
     // XGetWindowAttributes(d, w, &w_attr);
     // printf("window width: %d, height: %d\n", w_attr.width, w_attr.height);
@@ -41,8 +51,15 @@ int main(void)
     // XFlush(d);
     
     printf("Events pending: %d\n", XPending(d));
-    
-    getchar();
+
+    char c = getchar();
+    while (c != 'q') {
+
+        XClearArea(d, w, 0, 0, 600, 200, false);
+        XDrawLine(d, w, gc, 100, 100, 200, 200);
+        printf("Events pending: %d\n", XPending(d));
+        c = getchar();
+    }
 
     return 0;
 }
