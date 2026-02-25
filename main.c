@@ -31,7 +31,7 @@ int main(void)
 
     XSetWindowAttributes w_attr;
     w_attr.background_pixel = 0x202020;
-    w_attr.event_mask = StructureNotifyMask;
+    w_attr.event_mask = StructureNotifyMask | ExposureMask;
     unsigned long w_attr_mask = CWEventMask | CWBackPixel;
 
     Window w = XCreateWindow(d, s->root, 0, 0, 600, 400, 0,
@@ -58,7 +58,7 @@ int main(void)
     XClearArea(d, w, 0, 0, 600, 200, false);
     XDrawLine(d, w, gc, 100, 100, 200, 200);
 
-    printf("white pixel %lx\n", WhitePixel(d, 0));
+    // printf("white pixel %lx\n", WhitePixel(d, 0));
     // XSetForeground(d, gc, WhitePixel(d, 0));
     XSetForeground(d, gc, 0xff0000);
 
@@ -68,11 +68,9 @@ int main(void)
 
     // XFlush(d);
     
-    printf("Events pending: %d\n", XPending(d));
-
-    printf("byte order: %d\n", ImageByteOrder(d));
-    printf("LSB: %d\n", LSBFirst);
-    printf("MSB: %d\n", MSBFirst);
+    // printf("byte order: %d\n", ImageByteOrder(d));
+    // printf("LSB: %d\n", LSBFirst);
+    // printf("MSB: %d\n", MSBFirst);
 
     int img_w = 30;
     int img_h = 30;
@@ -86,15 +84,51 @@ int main(void)
 
     XImage *img = XCreateImage(d, DefaultVisual(d, 0), DefaultDepth(d, 0), ZPixmap, 0, (char*)img_data, img_w, img_h, 32, 0);
 
-    char c = getchar();
-    while (c != 'q') {
+    bool window_destroyed = false;
 
-        XClearArea(d, w, 0, 0, 600, 200, false);
-        XDrawLine(d, w, gc, 50, 50, 200, 50);
-        XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
-        printf("Events pending: %d\n", XPending(d));
-        c = getchar();
+    while (!window_destroyed) {
+        XEvent e;
+        XNextEvent(d, &e);
+        switch (e.type) {
+        // ExposureMask
+        case Expose:
+            XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
+            break;
+
+        // StructureNotifyMask
+        case CirculateNotify:
+            break;
+        case ConfigureNotify:
+            XWindowAttributes w_attr;
+            XGetWindowAttributes(d, w, &w_attr);
+            printf("window width: %d, height: %d\n", w_attr.width, w_attr.height);
+            break;
+        case DestroyNotify:
+            window_destroyed = true;
+            break;
+        case GravityNotify:
+            break;
+        case MapNotify:
+            break;
+        case ReparentNotify:
+            break;
+        case UnmapNotify:
+            break;
+
+        default:
+            printf("Unhandled event id: %d\n", e.type);
+        }
     }
+
+    // char c = getchar();
+    // while (c != 'q') {
+
+    //     XClearArea(d, w, 0, 0, 600, 200, false);
+    //     XDrawLine(d, w, gc, 50, 50, 200, 50);
+    //     XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
+    //     printf("Events pending: %d\n", XPending(d));
+    //     c = getchar();
+    // }
 
     return 0;
 }
