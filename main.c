@@ -2,6 +2,8 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xutil.h>
+// #include <X11/Xkeysym.h>
 // #include <X11/Xcms.h>
 
 int main(void) 
@@ -31,7 +33,7 @@ int main(void)
 
     XSetWindowAttributes w_attr;
     w_attr.background_pixel = 0x202020;
-    w_attr.event_mask = StructureNotifyMask | ExposureMask;
+    w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask;
     unsigned long w_attr_mask = CWEventMask | CWBackPixel;
 
     Window w = XCreateWindow(d, s->root, 0, 0, 600, 400, 0,
@@ -92,16 +94,35 @@ int main(void)
         switch (e.type) {
         // ExposureMask
         case Expose:
-            XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
+            {
+            int count = e.xexpose.count;
+            if (count == 0) {
+                XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
+            }
+            }
+            break;
+
+        // KeyPressMask
+        case KeyPress:
+            {
+            char buffer[10];
+            int count = XLookupString(&e.xkey, buffer, 10, NULL, NULL);
+            printf("====> char recieved\n");
+            for (int i = 0; i < count; i++) {
+                printf("\t%c\n", buffer[i]);
+            }
+            }
             break;
 
         // StructureNotifyMask
         case CirculateNotify:
             break;
         case ConfigureNotify:
-            XWindowAttributes w_attr;
-            XGetWindowAttributes(d, w, &w_attr);
-            printf("window width: %d, height: %d\n", w_attr.width, w_attr.height);
+            // XWindowAttributes w_attr;
+            // XGetWindowAttributes(d, w, &w_attr);
+            int width = e.xconfigure.width;
+            int height = e.xconfigure.height;
+            printf("window width: %d, height: %d\n", width, height);
             break;
         case DestroyNotify:
             window_destroyed = true;
