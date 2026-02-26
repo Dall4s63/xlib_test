@@ -1,161 +1,39 @@
 #include <stdio.h>
-// #include <time.h>
-#include <sys/time.h>
+#include <time.h>
+#include <stdlib.h>
+// #include <sys/time.h>
 
-#include <X11/Xlib.h>
-#include <X11/Xatom.h>
-#include <X11/Xutil.h>
+// #include <X11/Xlib.h>
+// #include <X11/Xatom.h>
+// #include <X11/Xutil.h>
 // #include <X11/Xkeysym.h>
 // #include <X11/Xcms.h>
 
+#include "display.h"
+
+Image temp_img(void) {
+    Image out;
+    out.width = 600;
+    out.height = 400;
+    out.data = malloc(sizeof(char) * 4 * out.width * out.height);
+    if (out.data == NULL) { printf("Helpppp\n"); }
+    for (int i = 0; i < 4 * out.width * out.height; i += 4) {
+        int row = i / 4 / out.width;
+        int col = (i / 4) % out.width;
+        out.data[i] = 0xff * row / out.height;
+        out.data[i+1] = 0xff * col / out.width;
+        out.data[i+2] = 0x80;
+        out.data[i+3] = 0;
+    }
+    return out;
+}
+
 int main(void) {
-    Display *d = XOpenDisplay(NULL);
-    if (d == NULL) { return 1; }
-    int s_no = DefaultScreen(d);
-    // printf("default screen: %d\n", DefaultScreen(d));
-
-    // int pmfv_count;
-    // XPixmapFormatValues *pmfv = XListPixmapFormats(d, &pmfv_count);
-    // for (int i = 0; i < pmfv_count; i++) {
-    //     printf("value: %d\n", i);
-    //     printf("    depth: \t\t%d\n", pmfv[i].depth);
-    //     printf("    bits per pixel: \t%d\n", pmfv[i].bits_per_pixel);
-    //     printf("    scanline pad: \t%d\n", pmfv[i].scanline_pad);
-    // }
-
-
-    printf("screen width: %u\n", DisplayWidth(d, s_no));
-
-    Screen *s = DefaultScreenOfDisplay(d);
-
-    Visual *v = DefaultVisualOfScreen(s);
-    printf("Visual Id: %d\n", TrueColor);
-    // VisualID vid = XVisualIDFromVisual(v);
-
-    XSetWindowAttributes w_attr;
-    w_attr.background_pixel = 0x202020;
-    w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask;
-    unsigned long w_attr_mask = CWEventMask | CWBackPixel;
-
-    Window w = XCreateWindow(d, s->root, 0, 0, 600, 400, 0,
-        CopyFromParent, InputOutput, CopyFromParent, w_attr_mask, &w_attr);
-
-    Atom wm_state = XInternAtom(d, "_NET_WM_STATE", true);
-    Atom wm_state_full = XInternAtom(d, "_NET_WM_STATE_FULLSCREEN", true);
-
-    XChangeProperty(d, w, wm_state, XA_ATOM, 32, PropModeReplace, (unsigned char *)&wm_state_full, 1);
-
-    // Atom ret_type;
-    // int ret_format;
-    // unsigned long ret_nitems;
-    // unsigned long bytes_after;
-    // unsigned char *values;
-    // int res = XGetWindowProperty(d, w, net_state, 0, 5, false, AnyPropertyType, &ret_type, &ret_format, &ret_nitems,
-    //     &bytes_after, &values);
-
-    XMapWindow(d, w);
-
-    // GC gc = XCreateGC(d, w, 0, NULL);
-    GC gc = DefaultGC(d, XScreenNumberOfScreen(s));
-
-    XClearArea(d, w, 0, 0, 600, 200, false);
-    XDrawLine(d, w, gc, 100, 100, 200, 200);
-
-    // printf("white pixel %lx\n", WhitePixel(d, 0));
-    // XSetForeground(d, gc, WhitePixel(d, 0));
-    XSetForeground(d, gc, 0xff0000);
-
-    // XWindowAttributes w_attr;
-    // XGetWindowAttributes(d, w, &w_attr);
-    // printf("window width: %d, height: %d\n", w_attr.width, w_attr.height);
-
-    // XFlush(d);
+    setup_window();
     
-    // printf("byte order: %d\n", ImageByteOrder(d));
-    // printf("LSB: %d\n", LSBFirst);
-    // printf("MSB: %d\n", MSBFirst);
-
-    int img_w = 30;
-    int img_h = 30;
-    unsigned char img_data[4*img_w*img_h];
-    for (int i = 0; i < 4 * img_w * img_h; i += 4) {
-        img_data[i] = 0xff / img_h * i / 4 / img_h;
-        img_data[i+1] = 0xff / img_w * (i / 4 % img_w);
-        img_data[i+2] = 0xff;
-        img_data[i+3] = 0;
+    while (true) {
+        draw(temp_img());
     }
-
-    XImage *img = XCreateImage(d, DefaultVisual(d, 0), DefaultDepth(d, 0), ZPixmap, 0, (char*)img_data, img_w, img_h, 32, 0);
-
-    bool window_destroyed = false;
-
-    struct timeval start;
-    gettimeofday(&start, NULL);
-    while (!window_destroyed) {
-        XEvent e;
-        XNextEvent(d, &e);
-        struct timeval end;
-        gettimeofday(&end, NULL);
-        printf("sec diff: %ld, usec diff: %ld\n", end.tv_sec - start.tv_sec, end.tv_usec - start.tv_usec);
-        switch (e.type) {
-        // ExposureMask
-        case Expose:
-            {
-            int count = e.xexpose.count;
-            if (count == 0) {
-                XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
-            }
-            }
-            break;
-
-        // KeyPressMask
-        case KeyPress:
-            {
-            char buffer[10];
-            int count = XLookupString(&e.xkey, buffer, 10, NULL, NULL);
-            printf("====> char recieved\n");
-            for (int i = 0; i < count; i++) {
-                printf("\t%c\n", buffer[i]);
-            }
-            }
-            break;
-
-        // StructureNotifyMask
-        case CirculateNotify:
-            break;
-        case ConfigureNotify:
-            // XWindowAttributes w_attr;
-            // XGetWindowAttributes(d, w, &w_attr);
-            int width = e.xconfigure.width;
-            int height = e.xconfigure.height;
-            printf("window width: %d, height: %d\n", width, height);
-            break;
-        case DestroyNotify:
-            window_destroyed = true;
-            break;
-        case GravityNotify:
-            break;
-        case MapNotify:
-            break;
-        case ReparentNotify:
-            break;
-        case UnmapNotify:
-            break;
-
-        default:
-            printf("Unhandled event id: %d\n", e.type);
-        }
-    }
-
-    // char c = getchar();
-    // while (c != 'q') {
-
-    //     XClearArea(d, w, 0, 0, 600, 200, false);
-    //     XDrawLine(d, w, gc, 50, 50, 200, 50);
-    //     XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
-    //     printf("Events pending: %d\n", XPending(d));
-    //     c = getchar();
-    // }
 
     return 0;
 }

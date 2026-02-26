@@ -3,7 +3,7 @@ CFLAGS = -Wall
 LDFLAGS = -lX11
 SHELL = /bin/zsh
 
-objects = main.o
+objects = main.o x_display.o
 
 all: $(objects) 
 	$(CC) $(CFLAGS) $^ --debug -o bin/main $(LDFLAGS)
