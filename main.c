@@ -1,4 +1,6 @@
 #include <stdio.h>
+// #include <time.h>
+#include <sys/time.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -6,8 +8,7 @@
 // #include <X11/Xkeysym.h>
 // #include <X11/Xcms.h>
 
-int main(void) 
-{
+int main(void) {
     Display *d = XOpenDisplay(NULL);
     if (d == NULL) { return 1; }
     int s_no = DefaultScreen(d);
@@ -88,9 +89,14 @@ int main(void)
 
     bool window_destroyed = false;
 
+    struct timeval start;
+    gettimeofday(&start, NULL);
     while (!window_destroyed) {
         XEvent e;
         XNextEvent(d, &e);
+        struct timeval end;
+        gettimeofday(&end, NULL);
+        printf("sec diff: %ld, usec diff: %ld\n", end.tv_sec - start.tv_sec, end.tv_usec - start.tv_usec);
         switch (e.type) {
         // ExposureMask
         case Expose:
