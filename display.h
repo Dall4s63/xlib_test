@@ -12,8 +12,15 @@ typedef struct _image {
     int height;
 } Image;
 
+typedef struct _event_callbacks {
+    void (*button_press)(int b, int x, int y);
+    void (*button_release)(int b, int x, int y);
+} EventCallbacks;
+
 int setup_window(void);
 
 int draw(Image in);
+
+int handle_events(EventCallbacks ecbs);
 
 #endif
