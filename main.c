@@ -28,11 +28,22 @@ Image temp_img(void) {
     return out;
 }
 
+bool window_closed = false;
+
+void window_destroyed(void) {
+    printf("window_destroyed callback called\n");
+    window_closed = true;
+}
+
 int main(void) {
+    EventCallbacks callbacks;
+    callbacks.window_destroyed = &window_destroyed;
     setup_window();
     
-    while (true) {
+    while (!window_closed) {
+        handle_events(&callbacks);
         draw(temp_img());
+        handle_events(&callbacks);
     }
 
     return 0;

@@ -5,6 +5,7 @@
  *  - Drawing to the window on command using an image passed to it
  *  - Handling window events, and passing back input events
  */
+#include <stdio.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -22,7 +23,13 @@ GC main_gc;
 
 int byte_order;
 
+int error_handler(Display *d, XErrorEvent *e) {
+    return 0;
+}
+
 int setup_window(void) {
+    XSetErrorHandler(&error_handler);
+
     display = XOpenDisplay(NULL);
     // TODO error handling
     // if (d == NULL) { return 1; }
@@ -74,57 +81,59 @@ int draw(Image in) {
     return 0;
 }
 
+int handle_events(EventCallbacks *callbacks) {
+    while (XPending(display) > 0) {
+        printf("checking events\n");
+        XEvent e;
+        XNextEvent(display, &e);
+        switch (e.type) {
+        case Expose: 
+            break;
+
+        // KeyPressMask
+        case KeyPress: 
+            // {
+            // char buffer[10];
+            // int count = XLookupString(&e.xkey, buffer, 10, NULL, NULL);
+            // printf("====> char recieved\n");
+            // for (int i = 0; i < count; i++) {
+            //     printf("\t%c\n", buffer[i]);
+            // }}
+            break;
+
+        // StructureNotifyMask
+        case CirculateNotify:
+            break;
+        case ConfigureNotify: {
+            int width = e.xconfigure.width;
+            int height = e.xconfigure.height;
+            // printf("window width: %d, height: %d\n", width, height);
+            break; }
+        case DestroyNotify:
+            printf("window destroyed\n");
+            (*callbacks->window_destroyed)();
+            break;
+        case GravityNotify:
+            break;
+        case MapNotify:
+            break;
+        case ReparentNotify:
+            break;
+        case UnmapNotify:
+            break;
+
+        default:
+            printf("Unhandled event id: %d\n", e.type);
+        }
+    }
+    return 0;
+}
+
 
 //     while (!window_destroyed) {
 //         XEvent e;
 //         XNextEvent(d, &e);
 //         switch (e.type) {
 //         // ExposureMask
-//         case Expose:
-//             {
-//             int count = e.xexpose.count;
-//             if (count == 0) {
-//                 XPutImage(d, w, gc, img, 0, 0, 100, 100, img_w, img_h);
-//             }
-//             }
-//             break;
-// 
-//         // KeyPressMask
-//         case KeyPress:
-//             {
-//             char buffer[10];
-//             int count = XLookupString(&e.xkey, buffer, 10, NULL, NULL);
-//             printf("====> char recieved\n");
-//             for (int i = 0; i < count; i++) {
-//                 printf("\t%c\n", buffer[i]);
-//             }
-//             }
-//             break;
-// 
-//         // StructureNotifyMask
-//         case CirculateNotify:
-//             break;
-//         case ConfigureNotify:
-//             // XWindowAttributes w_attr;
-//             // XGetWindowAttributes(d, w, &w_attr);
-//             int width = e.xconfigure.width;
-//             int height = e.xconfigure.height;
-//             printf("window width: %d, height: %d\n", width, height);
-//             break;
-//         case DestroyNotify:
-//             window_destroyed = true;
-//             break;
-//         case GravityNotify:
-//             break;
-//         case MapNotify:
-//             break;
-//         case ReparentNotify:
-//             break;
-//         case UnmapNotify:
-//             break;
-// 
-//         default:
-//             printf("Unhandled event id: %d\n", e.type);
-//         }
 //     }
 

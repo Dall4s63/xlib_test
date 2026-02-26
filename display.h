@@ -15,12 +15,14 @@ typedef struct _image {
 typedef struct _event_callbacks {
     void (*button_press)(int b, int x, int y);
     void (*button_release)(int b, int x, int y);
+
+    void (*window_destroyed)(void);
 } EventCallbacks;
 
 int setup_window(void);
 
 int draw(Image in);
 
-int handle_events(EventCallbacks ecbs);
+int handle_events(EventCallbacks *callbacks);
 
 #endif
