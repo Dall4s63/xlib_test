@@ -16,6 +16,7 @@ typedef struct _event_callbacks {
     void (*button_press)(int b, int x, int y);
     void (*button_release)(int b, int x, int y);
 
+    void (*window_resized)(int width, int height);
     void (*window_destroyed)(void);
 } EventCallbacks;
 
