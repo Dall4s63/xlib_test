@@ -13,8 +13,10 @@ typedef struct _image {
 } Image;
 
 typedef struct _event_callbacks {
-    void (*button_press)(int b, int x, int y);
-    void (*button_release)(int b, int x, int y);
+    void (*button_press)(int button, int x, int y);
+    void (*button_release)(int button, int x, int y);
+
+    // void (*key_press)(key, scancode);
 
     void (*window_resized)(int width, int height);
     void (*window_destroyed)(void);

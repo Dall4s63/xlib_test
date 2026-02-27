@@ -11,6 +11,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
+#include <X11/keysym.h>
 
 #include "display.h"
 
@@ -21,6 +22,10 @@ Visual *visual;
 int default_depth;
 Window main_window;
 GC main_gc;
+
+KeySym *keysyms;
+int keysyms_per_code;
+int min_keycodes;
 
 int byte_order;
 
@@ -73,6 +78,12 @@ int setup_window(void) {
 
     byte_order = ImageByteOrder(display);
 
+    int max_keycodes;
+    XDisplayKeycodes(display, &min_keycodes, &max_keycodes);
+
+    keysyms = XGetKeyboardMapping(display, min_keycodes, 
+        max_keycodes + 1 - min_keycodes, &keysyms_per_code);
+
     return 0;
 }
 
@@ -106,8 +117,19 @@ int handle_events(EventCallbacks *callbacks) {
         case Expose: 
             break;
 
+        // ButtonPressMask
+        case ButtonPress:
+            break;
+        // ButtonReleaseMask
+        case ButtonRelease:
+            break;
+
         // KeyPressMask
         case KeyPress: 
+            {
+            int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
+            KeySym key = keysyms[index];
+            }
             // {
             // char buffer[10];
             // int count = XLookupString(&e.xkey, buffer, 10, NULL, NULL);
@@ -115,6 +137,10 @@ int handle_events(EventCallbacks *callbacks) {
             // for (int i = 0; i < count; i++) {
             //     printf("\t%c\n", buffer[i]);
             // }}
+            break;
+
+        // KeyReleaseMask
+        case KeyRelease:
             break;
 
         // StructureNotifyMask
@@ -145,12 +171,4 @@ int handle_events(EventCallbacks *callbacks) {
     }
     return 0;
 }
-
-
-//     while (!window_destroyed) {
-//         XEvent e;
-//         XNextEvent(d, &e);
-//         switch (e.type) {
-//         // ExposureMask
-//     }
 
