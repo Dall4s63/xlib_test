@@ -34,7 +34,7 @@ int byte_order;
 
 bool bad_drawable = false;
 
-XImage cur_image;
+XImage cur_img;
 
 int error_handler(Display *d, XErrorEvent *e) {
     if (e->error_code == BadDrawable) {
@@ -47,6 +47,16 @@ int error_handler(Display *d, XErrorEvent *e) {
     fprintf(stderr, (char*)buffer);
     fprintf(stderr, "\n");
     return 0;
+}
+
+int setup_image(int width, int height) {
+    char *new_data = malloc(sizeof(char) * 4 * width * height);
+
+    cur_img.width = width;
+    cur_img.height = height;
+    cur_img.format = ZPixmap;
+    int status = XInitImage(&cur_img);
+    return status;
 }
 
 int setup_window(int width, int height) {
@@ -86,6 +96,9 @@ int setup_window(int width, int height) {
 
     keysyms = XGetKeyboardMapping(display, min_keycodes, 
         max_keycodes + 1 - min_keycodes, &keysyms_per_code);
+
+    // XImage *cur_img = XCreateImage(display, visual, default_depth,
+    //     ZPixmap, 0, in.data, in.width, in.height, 32, 0);
 
     return 0;
 }

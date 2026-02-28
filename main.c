@@ -61,7 +61,7 @@ int main(void) {
     callbacks.window_destroyed = &window_destroyed;
     callbacks.window_resized = &window_resized;
     callbacks.key_press = &key_press;
-    setup_window();
+    setup_window(600, 400);
 
     // clock_gettime(CLOCK_REALTIME, &time);
     // nanosleep(&time, NULL);
