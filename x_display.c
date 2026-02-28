@@ -34,6 +34,8 @@ int byte_order;
 
 bool bad_drawable = false;
 
+XImage cur_image;
+
 int error_handler(Display *d, XErrorEvent *e) {
     if (e->error_code == BadDrawable) {
         bad_drawable = true;
@@ -47,7 +49,7 @@ int error_handler(Display *d, XErrorEvent *e) {
     return 0;
 }
 
-int setup_window(void) {
+int setup_window(int width, int height) {
     XSetErrorHandler(&error_handler);
 
     display = XOpenDisplay(NULL);
@@ -64,7 +66,7 @@ int setup_window(void) {
     w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask;
     unsigned long w_attr_mask = CWEventMask | CWBackPixel;
 
-    main_window = XCreateWindow(display, screen->root, 0, 0, 600, 400, 0,
+    main_window = XCreateWindow(display, screen->root, 0, 0, width, height, 0,
         default_depth, InputOutput, CopyFromParent, w_attr_mask, &w_attr);
 
     Atom wm_state = XInternAtom(display, "_NET_WM_STATE", true);
@@ -94,6 +96,12 @@ int draw(Image in) {
     //     return 0;
     // }
     if (byte_order == LSBFirst) {
+        for (int i = 0; i < 4 * in.width * in.height; i += 4) {
+            char temp = in.data[i];
+            in.data[i] = in.data[i+2];
+            in.data[i+2] = temp;
+        }
+    } else {
         for (int i = 0; i < 4 * in.width * in.height; i += 4) {
             char temp = in.data[i];
             in.data[i] = in.data[i+2];
