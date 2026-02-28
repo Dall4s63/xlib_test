@@ -45,11 +45,10 @@ int error_handler(Display *d, XErrorEvent *e) {
 }
 
 int setup_window(void) {
+    printf("starting setup\n");
     XSetErrorHandler(&error_handler);
 
     display = XOpenDisplay(NULL);
-    // TODO error handling
-    // if (d == NULL) { return 1; }
     screen_number = DefaultScreen(display);
 
     screen = DefaultScreenOfDisplay(display);
@@ -78,12 +77,13 @@ int setup_window(void) {
 
     byte_order = ImageByteOrder(display);
 
-    int max_keycodes;
-    XDisplayKeycodes(display, &min_keycodes, &max_keycodes);
+    // int max_keycodes;
+    // XDisplayKeycodes(display, &min_keycodes, &max_keycodes);
 
-    keysyms = XGetKeyboardMapping(display, min_keycodes, 
-        max_keycodes + 1 - min_keycodes, &keysyms_per_code);
+    // keysyms = XGetKeyboardMapping(display, min_keycodes, 
+    //     max_keycodes + 1 - min_keycodes, &keysyms_per_code);
 
+    printf("make it to the end of setup");
     return 0;
 }
 
@@ -127,8 +127,9 @@ int handle_events(EventCallbacks *callbacks) {
         // KeyPressMask
         case KeyPress: 
             {
-            int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
-            KeySym key = keysyms[index];
+            // int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
+            // KeySym key = keysyms[index];
+            printf("keypress\n");
             }
             // {
             // char buffer[10];
