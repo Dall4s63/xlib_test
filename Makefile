@@ -8,7 +8,7 @@ objects = main.o x_display.o
 all: $(objects) 
 	$(CC) $(CFLAGS) $^ --debug -o bin/main $(LDFLAGS)
 
-$(objects): %.o: %.c
+$(objects): %.o: %.c 
 	$(CC) $(CFLAGS) --debug -c $^ -o $@
 
 run:
