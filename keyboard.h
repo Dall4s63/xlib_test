@@ -8,19 +8,34 @@
  * I suppose.
  */
 
-typedef unsigned int KeyId;
+#ifdef KB_ALL
+
+#define KB_MISC
+#define KB_LATIN
+
+#endif
+
+#ifdef KB_MY_DEFAULTS
+
+#define KB_MISC
+#define KB_LATIN
+
+#endif
+
+#define KB_NoSymbol    0x0000
 
 #ifdef KB_MISC
 
-#define KB_ESCAPE       0xff01
-#define KB_RETURN       0xff0d 
+#define KB_Escape       0xff01
+#define KB_Return       0xff0d 
 
-#define KB_LEFT         0xff51
-#define KB_UP           0xff52
-#define KB_RIGHT        0xff53
-#define KB_DOWN         0xff54
+#define KB_Left         0xff51
+#define KB_Up           0xff52
+#define KB_Right        0xff53
+#define KB_Down         0xff54
 
 #endif
+
 
 #ifdef KB_LATIN
 
@@ -52,5 +67,9 @@ typedef unsigned int KeyId;
 #define KB_Z            0x005a
 
 #endif
+
+typedef unsigned int KeyId;
+
+char *keyidstr(KeyId id);
 
 #endif

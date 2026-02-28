@@ -3,7 +3,7 @@ CFLAGS = -Wall
 LDFLAGS = -lX11
 SHELL = /bin/zsh
 
-sources = main.c x_display.c
+sources = main.c x_display.c keyboard.c
 
 objects = $(patsubst %.c,%.o,$(sources))
 

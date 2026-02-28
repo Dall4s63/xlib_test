@@ -6,6 +6,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#define KB_MY_DEFAULTS
 #include "keyboard.h"
 
 typedef struct _image {

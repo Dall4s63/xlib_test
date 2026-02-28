@@ -15,6 +15,9 @@
 
 #include "display.h"
 
+#define KB_MY_DEFAULTS
+#include "keyboard.h"
+
 Display *display;
 int screen_number;
 Screen *screen;
@@ -45,7 +48,6 @@ int error_handler(Display *d, XErrorEvent *e) {
 }
 
 int setup_window(void) {
-    printf("starting setup\n");
     XSetErrorHandler(&error_handler);
 
     display = XOpenDisplay(NULL);
@@ -77,13 +79,12 @@ int setup_window(void) {
 
     byte_order = ImageByteOrder(display);
 
-    // int max_keycodes;
-    // XDisplayKeycodes(display, &min_keycodes, &max_keycodes);
+    int max_keycodes;
+    XDisplayKeycodes(display, &min_keycodes, &max_keycodes);
 
-    // keysyms = XGetKeyboardMapping(display, min_keycodes, 
-    //     max_keycodes + 1 - min_keycodes, &keysyms_per_code);
+    keysyms = XGetKeyboardMapping(display, min_keycodes, 
+        max_keycodes + 1 - min_keycodes, &keysyms_per_code);
 
-    printf("make it to the end of setup");
     return 0;
 }
 
@@ -108,6 +109,44 @@ int draw(Image in) {
     return 0;
 }
 
+KeyId keysym_to_keyid(KeySym key) {
+    switch (key) {
+    case XK_Return: return KB_Return;
+    case XK_Escape: return KB_Escape;
+    case XK_Left: return KB_Left;
+    case XK_Up: return KB_Up;
+    case XK_Right: return KB_Right;
+    case XK_Down: return KB_Down;
+    case XK_a: case XK_A: return KB_A;
+    case XK_b: case XK_B: return KB_B;
+    case XK_c: case XK_C: return KB_C;
+    case XK_d: case XK_D: return KB_D;
+    case XK_e: case XK_E: return KB_E;
+    case XK_f: case XK_F: return KB_F;
+    case XK_g: case XK_G: return KB_G;
+    case XK_h: case XK_H: return KB_H;
+    case XK_i: case XK_I: return KB_I;
+    case XK_j: case XK_J: return KB_J;
+    case XK_k: case XK_K: return KB_K;
+    case XK_l: case XK_L: return KB_L;
+    case XK_m: case XK_M: return KB_M;
+    case XK_n: case XK_N: return KB_N;
+    case XK_o: case XK_O: return KB_O;
+    case XK_p: case XK_P: return KB_P;
+    case XK_q: case XK_Q: return KB_Q;
+    case XK_r: case XK_R: return KB_R;
+    case XK_s: case XK_S: return KB_S;
+    case XK_t: case XK_T: return KB_T;
+    case XK_u: case XK_U: return KB_U;
+    case XK_v: case XK_V: return KB_V;
+    case XK_w: case XK_W: return KB_W;
+    case XK_x: case XK_X: return KB_X;
+    case XK_y: case XK_Y: return KB_Y;
+    case XK_z: case XK_Z: return KB_Z;
+    default: return KB_NoSymbol;
+    }
+}
+
 int handle_events(EventCallbacks *callbacks) {
     XSync(display, false);
     while (XPending(display) > 0) {
@@ -127,17 +166,11 @@ int handle_events(EventCallbacks *callbacks) {
         // KeyPressMask
         case KeyPress: 
             {
-            // int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
-            // KeySym key = keysyms[index];
-            printf("keypress\n");
+            int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
+            KeySym key = keysyms[index];
+            KeyId id = keysym_to_keyid(key);
+            (*callbacks->key_press)(id, e.xkey.keycode);
             }
-            // {
-            // char buffer[10];
-            // int count = XLookupString(&e.xkey, buffer, 10, NULL, NULL);
-            // printf("====> char received\n");
-            // for (int i = 0; i < count; i++) {
-            //     printf("\t%c\n", buffer[i]);
-            // }}
             break;
 
         // KeyReleaseMask

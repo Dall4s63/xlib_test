@@ -1,13 +1,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
-// #include <sys/time.h>
-
-// #include <X11/Xlib.h>
-// #include <X11/Xatom.h>
-// #include <X11/Xutil.h>
-// #include <X11/Xkeysym.h>
-// #include <X11/Xcms.h>
 
 #include <time.h>
 
@@ -47,6 +40,11 @@ void window_resized(int width, int height) {
     win_height = height;
 }
 
+void key_press(KeyId key, unsigned int scancode) {
+    char *key_name = keyidstr(key);
+    printf("Received key: %s\n", key_name);
+}
+
 struct timespec timespec_sub(struct timespec a, struct timespec b) {
     time_t sec_diff = a.tv_sec - b.tv_sec;
     long nsec_diff = a.tv_nsec - b.tv_nsec;
@@ -58,9 +56,11 @@ struct timespec timespec_sub(struct timespec a, struct timespec b) {
 }
 
 int main(void) {
+
     EventCallbacks callbacks;
     callbacks.window_destroyed = &window_destroyed;
     callbacks.window_resized = &window_resized;
+    callbacks.key_press = &key_press;
     setup_window();
 
     // clock_gettime(CLOCK_REALTIME, &time);
