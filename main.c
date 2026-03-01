@@ -11,21 +11,21 @@ int win_height = 400;
 
 int fps = 60;
 
+Image test_image = {0, 0, 0};
+
 Image temp_img(void) {
-    Image out;
-    out.width = win_width;
-    out.height = win_height;
-    out.data = malloc(sizeof(char) * 4 * out.width * out.height);
-    if (out.data == NULL) { printf("Helpppp\n"); }
-    for (int i = 0; i < 4 * out.width * out.height; i += 4) {
-        int row = i / 4 / out.width;
-        int col = (i / 4) % out.width;
-        out.data[i] = 0xff * row / out.height;
-        out.data[i+1] = 0xff * col / out.width;
-        out.data[i+2] = 0x80;
-        out.data[i+3] = 0;
+    test_image.width = win_width;
+    test_image.height = win_height;
+    test_image.data = malloc(sizeof(char) * 4 * test_image.width * test_image.height);
+    if (test_image.data == NULL) { printf("Helpppp\n"); }
+    for (int i = 0; i < 4 * test_image.width * test_image.height; i += 4) {
+        int row = i / 4 / test_image.width;
+        int col = (i / 4) % test_image.width;
+        test_image.data[i] = 0xff * row / test_image.height;
+        test_image.data[i+1] = 0xff * col / test_image.width;
+        test_image.data[i+2] = 0x80;
+        test_image.data[i+3] = 0;
     }
-    return out;
 }
 
 bool window_closed = false;
@@ -38,6 +38,8 @@ void window_destroyed(void) {
 void window_resized(int width, int height) {
     win_width = width;
     win_height = height;
+    free(test_image.data);
+    test_image.data = NULL;
 }
 
 void key_press(KeyId key, unsigned int scancode) {
@@ -73,10 +75,14 @@ int main(void) {
     frame_time.tv_sec = 0;
     frame_time.tv_nsec = 1000000000 / fps;
     double dt = (double)frame_time.tv_nsec / 1.0e10;
+
     while (!window_closed) {
         clock_gettime(CLOCK_REALTIME, &start);
         handle_events(&callbacks);
-        draw(temp_img());
+        if (test_image.data == NULL) {
+            temp_img();
+        }
+        draw(test_image);
         handle_events(&callbacks);
         clock_gettime(CLOCK_REALTIME, &end);
         diff = timespec_sub(end, start);

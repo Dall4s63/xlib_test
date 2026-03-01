@@ -18,23 +18,23 @@
 #define KB_MY_DEFAULTS
 #include "keyboard.h"
 
-Display *display;
-int screen_number;
-Screen *screen;
-Visual *visual;
-int default_depth;
-Window main_window;
-GC main_gc;
+static Display *display;
+static int screen_number;
+static Screen *screen;
+static Visual *visual;
+static int default_depth;
+static Window main_window;
+static GC main_gc;
 
-KeySym *keysyms;
-int keysyms_per_code;
-int min_keycodes;
+static KeySym *keysyms;
+static int keysyms_per_code;
+static int min_keycodes;
 
-int byte_order;
+static int byte_order;
 
-bool bad_drawable = false;
+static bool bad_drawable = false;
 
-XImage cur_img;
+static XImage *cur_img = NULL;
 
 int error_handler(Display *d, XErrorEvent *e) {
     if (e->error_code == BadDrawable) {
@@ -102,6 +102,9 @@ int setup_window(int width, int height) {
 }
 
 int draw(Image in) {
+    if (cur_img == NULL) {
+        setup_image(in.width, in.height);
+    }
     if ((in.width != cur_img->width) || (in.height != cur_img->height)) {
         XDestroyImage(cur_img);
         setup_image(in.width, in.height);
