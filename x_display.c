@@ -51,12 +51,10 @@ int error_handler(Display *d, XErrorEvent *e) {
 
 int setup_image(int width, int height) {
     char *new_data = malloc(sizeof(char) * 4 * width * height);
-
-    cur_img.width = width;
-    cur_img.height = height;
-    cur_img.format = ZPixmap;
-    int status = XInitImage(&cur_img);
-    return status;
+    if (new_data == NULL) { return 1; }
+    cur_img = XCreateImage(display, visual, default_depth, ZPixmap,
+        0, new_data, width, height, 32, 0);
+    return 0;
 }
 
 int setup_window(int width, int height) {
@@ -104,29 +102,31 @@ int setup_window(int width, int height) {
 }
 
 int draw(Image in) {
-    // if (bad_drawable) {
-    //     free(in.data);
-    //     return 0;
-    // }
+    if ((in.width != cur_img->width) || (in.height != cur_img->height)) {
+        XDestroyImage(cur_img);
+        setup_image(in.width, in.height);
+    }
     if (byte_order == LSBFirst) {
         for (int i = 0; i < 4 * in.width * in.height; i += 4) {
-            char temp = in.data[i];
-            in.data[i] = in.data[i+2];
-            in.data[i+2] = temp;
+            cur_img->data[i] = in.data[i+2];
+            cur_img->data[i+1] = in.data[i+1];
+            cur_img->data[i+2] = in.data[i];
+            cur_img->data[i+3] = 0;
         }
     } else {
         for (int i = 0; i < 4 * in.width * in.height; i += 4) {
-            char temp = in.data[i];
-            in.data[i] = in.data[i+2];
-            in.data[i+2] = temp;
+            cur_img->data[i] = in.data[i];
+            cur_img->data[i+1] = in.data[i+1];
+            cur_img->data[i+2] = in.data[i+2];
+            cur_img->data[i+3] = 0;
         }
     }
-    XImage *img = XCreateImage(display, visual, default_depth,
-        ZPixmap, 0, in.data, in.width, in.height, 32, 0);
+
+    // XImage *img = XCreateImage(display, visual, default_depth,
+    //     ZPixmap, 0, in.data, in.width, in.height, 32, 0);
     // Pixmap temp = XCreatePixmap(display, main_window, in.width, in.height, default_depth);
-    XPutImage(display, main_window, main_gc, img, 0, 0, 0, 0, in.width, in.height);
+    XPutImage(display, main_window, main_gc, cur_img, 0, 0, 0, 0, in.width, in.height);
     XFlush(display);
-    XDestroyImage(img);
     return 0;
 }
 
