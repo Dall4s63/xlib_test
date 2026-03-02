@@ -3,6 +3,7 @@ static int virtual_width;
 static int virtual_height;
 
 static Image v_canvas;
+static char *zbuffer;
 
 typedef struct _drawables {
     int data_len;
@@ -23,6 +24,10 @@ int setup(int v_width, int v_height) {
     v_canvas.height = v_height;
     v_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
     if (v_canvas.data == NULL) {
+        return 1;
+    }
+    zbuffer = malloc(sizeof(char) * v_width * v_height);
+    if (zbuffer == NULL) {
         return 1;
     }
     drawables.data_len = 0;
@@ -47,6 +52,9 @@ int setup(int v_width, int v_height) {
 int render(Image canvas) {
     // first render to the virtual canvas
     for (int i = 0; i < drawables.data_len; i++) {
+        Drawawble d = drawables.data[i];
+        switch (d.type) {
+        }
     }
     // then copy the virtual canvas to the provided 
     // canvas 

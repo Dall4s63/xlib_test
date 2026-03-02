@@ -20,25 +20,41 @@ typedef union _rgb_color {
     char     rgb[4]
 } RGBColor;
 
+int LineDrawableType 1
+int CircleDrawableType 2
+
 // I think it makes sense to store a line using x,y as its position
 // with x1,y1 and x2,y2 relative to x,y.
 typedef struct _line_drawable {
-    double x;
-    double y;
-    double x1;
-    double y1;
-    double x2;
-    double y2;
     int type;
     RGBColor set_color;
     RGBColor pc_color;
     int blend mode;
+    double x1;
+    double y1;
+    double x2;
+    double y2;
     bool visible;
+    char zdepth;
 } LineDrawable;
+
+typedef struct _circle_drawable {
+    int type;
+    RGBColor set_color;
+    RGBColor pc_color;
+    int blend mode;
+    double x;
+    double y;
+    double radius;
+    bool fill;
+    bool visible;
+    char zdepth;
+} CircleDrawable;
 
 typedef union _drawable {
     int type;
     LineDrawable line;
+    CircleDrawable circle;
     long pad[8]; // TODO fix this 
 } Drawable;
 
