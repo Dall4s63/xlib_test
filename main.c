@@ -11,7 +11,7 @@
 int win_width = 600;
 int win_height = 400;
 
-int fps = 60;
+int fps = 10;
 
 Image test_image = {0, 0, 0};
 
@@ -87,7 +87,7 @@ int main(void) {
     render_setup(200, 150);
 
     Image temp = temp_img_gen();
-    new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
+    DrawableId temp_id = new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
 
     // clock_gettime(CLOCK_REALTIME, &time);
     // nanosleep(&time, NULL);
@@ -103,6 +103,15 @@ int main(void) {
     while (!window_closed) {
         clock_gettime(CLOCK_REALTIME, &start);
         handle_events(&callbacks);
+
+        SpriteInfo s_info;
+
+        sprite_get(temp_id, &s_info);
+
+        s_info.x = (s_info.x + 1) % 100;
+
+        sprite_set(temp_id, s_info, SPRITE_X);
+
         if (test_image.data == NULL) {
             temp_img();
         }

@@ -1,6 +1,7 @@
 #include "tactics_render.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 /* Type Declarations */
 
@@ -103,6 +104,7 @@ int render_setup(int v_width, int v_height) {
 }
 
 int render_run(Image canvas) {
+    memset(v_canvas.data, 0, 4 * v_canvas.width * v_canvas.height);
     // first render to the virtual canvas
     for (int data_i = 0; data_i < drawables.data_len; data_i++) {
         Drawable d = drawables.data[data_i];
@@ -146,5 +148,47 @@ int render_run(Image canvas) {
         canvas.data[i + 2] = v_canvas.data[v_index + 2];
         canvas.data[i + 3] = v_canvas.data[v_index + 3];
     }
+    return 0;
+}
+
+int sprite_set(DrawableId id, SpriteInfo vals, int mask) {
+    int index = drawables.ids_to_index[id];
+    int type = drawables.data[index].type;
+    if (type != SPRITE_TYPE) {
+        return 1;
+    }
+    if (mask & SPRITE_X) {
+        drawables.data[index].sprite.x = vals.x;
+    }
+    if (mask & SPRITE_Y) {
+        drawables.data[index].sprite.y = vals.y;
+    }
+    if (mask & SPRITE_DEPTH) {
+        drawables.data[index].sprite.depth = vals.depth;
+    }
+    if (mask & SPRITE_WIDTH) {
+        drawables.data[index].sprite.width = vals.width;
+    }
+    if (mask & SPRITE_HEIGHT) {
+        drawables.data[index].sprite.height = vals.height;
+    }
+    if (mask & SPRITE_DATA) {
+        drawables.data[index].sprite.data = vals.data;
+    }
+    return 0;
+}
+
+int sprite_get(DrawableId id, SpriteInfo *ret) {
+    int index = drawables.ids_to_index[id];
+    int type = drawables.data[index].type;
+    if (type != SPRITE_TYPE) {
+        return 1;
+    }
+    ret->x = drawables.data[index].sprite.x;
+    ret->y = drawables.data[index].sprite.y;
+    ret->data = drawables.data[index].sprite.data;
+    ret->width = drawables.data[index].sprite.width;
+    ret->height = drawables.data[index].sprite.height;
+    ret->depth = drawables.data[index].sprite.depth;
     return 0;
 }
