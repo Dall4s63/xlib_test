@@ -11,7 +11,7 @@
 int win_width = 600;
 int win_height = 400;
 
-int fps = 15;
+int fps = 30;
 
 Image test_image = {0, 0, 0};
 
@@ -109,11 +109,11 @@ int main(void) {
 
         sprite_get(temp_id, &s_info);
 
-        counter += 1;
-        if (counter > 30) {
-            s_info.x = (s_info.x + 10) % 100;
+        // counter += 1;
+        // if (counter > 2) {
+            s_info.x = (s_info.x + 1) % 100;
             counter = 0;
-        }
+        // }
 
         sprite_set(temp_id, s_info, SPRITE_X);
 
