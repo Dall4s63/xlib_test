@@ -3,8 +3,10 @@
 #include <stdlib.h>
 
 #include <time.h>
+#include <string.h>
 
 #include "display.h"
+#include "tactics_render.h"
 
 int win_width = 600;
 int win_height = 400;
@@ -18,14 +20,15 @@ Image temp_img(void) {
     test_image.height = win_height;
     test_image.data = malloc(sizeof(char) * 4 * test_image.width * test_image.height);
     if (test_image.data == NULL) { printf("Helpppp\n"); }
-    for (int i = 0; i < 4 * test_image.width * test_image.height; i += 4) {
-        int row = i / 4 / test_image.width;
-        int col = (i / 4) % test_image.width;
-        test_image.data[i] = 0xff * row / test_image.height;
-        test_image.data[i+1] = 0xff * col / test_image.width;
-        test_image.data[i+2] = 0x80;
-        test_image.data[i+3] = 0;
-    }
+    memset(test_image.data, 0, 4 * test_image.width * test_image.height);
+    // for (int i = 0; i < 4 * test_image.width * test_image.height; i += 4) {
+    //     int row = i / 4 / test_image.width;
+    //     int col = (i / 4) % test_image.width;
+    //     test_image.data[i] = 0xff * row / test_image.height;
+    //     test_image.data[i+1] = 0xff * col / test_image.width;
+    //     test_image.data[i+2] = 0x80;
+    //     test_image.data[i+3] = 0;
+    // }
 }
 
 bool window_closed = false;
@@ -63,7 +66,8 @@ int main(void) {
     callbacks.window_destroyed = &window_destroyed;
     callbacks.window_resized = &window_resized;
     callbacks.key_press = &key_press;
-    setup_window(600, 400);
+    setup_window(800, 600);
+    render_setup(200, 150);
 
     // clock_gettime(CLOCK_REALTIME, &time);
     // nanosleep(&time, NULL);
