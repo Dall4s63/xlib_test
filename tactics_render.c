@@ -1,5 +1,7 @@
 #include "tactics_render.h"
 
+#include <stdlib.h>
+
 /* Type Declarations */
 
 #define SPRITE_TYPE 1
@@ -18,7 +20,7 @@ typedef union _drawable {
     int type;
     SpriteDrawable sprite;
     long pad[4];
-} Drawwable
+} Drawable;
 
 typedef struct _drawables {
     int data_len;
@@ -56,6 +58,7 @@ DrawableId new_sprite(int x, int y, int width, int height, int depth, char *data
     drawables.data[new_index] = new;
     drawables.data_len += 1;
     if (new_index < drawables.ids_len) {
+        return drawables.index_to_ids[new_index];
     } else {
         if (drawables.ids_len >= drawables.ids_buf_len) {
             // TODO resize buffer
@@ -63,6 +66,7 @@ DrawableId new_sprite(int x, int y, int width, int height, int depth, char *data
         drawables.ids_to_index[new_index] = new_index;
         drawables.index_to_ids[new_index] = new_index;
         drawables.ids_len += 1;
+        return new_index;
     }
 }
 
@@ -101,7 +105,7 @@ int render_setup(int v_width, int v_height) {
 int render_run(Image canvas) {
     // first render to the virtual canvas
     for (int data_i = 0; data_i < drawables.data_len; data_i++) {
-        Drawawble d = drawables.data[data_i];
+        Drawable d = drawables.data[data_i];
         switch (d.type) {
         case SPRITE_TYPE: {
             int x = d.sprite.x;
@@ -119,11 +123,11 @@ int render_run(Image canvas) {
                 if (zbuffer[v_index] > depth) {
                     continue;
                 }
-                zbuffer[v_index] = depth
-                v_canvas[v_index * 4 + 0] = d.sprite.data[i + 0];
-                v_canvas[v_index * 4 + 1] = d.sprite.data[i + 1];
-                v_canvas[v_index * 4 + 2] = d.sprite.data[i + 2];
-                v_canvas[v_index * 4 + 3] = d.sprite.data[i + 3];
+                zbuffer[v_index] = depth;
+                v_canvas.data[v_index * 4 + 0] = d.sprite.data[i + 0];
+                v_canvas.data[v_index * 4 + 1] = d.sprite.data[i + 1];
+                v_canvas.data[v_index * 4 + 2] = d.sprite.data[i + 2];
+                v_canvas.data[v_index * 4 + 3] = d.sprite.data[i + 3];
             }
             break; }
         }
@@ -131,7 +135,7 @@ int render_run(Image canvas) {
 
     // then copy the virtual canvas to the provided 
     // canvas 
-    for (int i = 0; i < cavnas.width * canvas.height * 4; i += 4) {
+    for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
         int row = i / 4 / canvas.width;
         int col = i / 4 - row * canvas.width;
         int v_row = row * v_canvas.height / canvas.height;
