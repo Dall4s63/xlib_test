@@ -31,6 +31,23 @@ Image temp_img(void) {
     // }
 }
 
+Image temp_img_gen(void) {
+    Image new_image;
+    new_image.width = 30;
+    new_image.height = 30;
+    new_image.data = malloc(sizeof(char) * 4 * new_image.width * new_image.height);
+    if (new_image.data == NULL) { printf("Helpppp\n"); }
+    for (int i = 0; i < 4 * new_image.width * new_image.height; i += 4) {
+        int row = i / 4 / new_image.width;
+        int col = (i / 4) % new_image.width;
+        new_image.data[i] = 0xff * row / new_image.height;
+        new_image.data[i+1] = 0xff * col / new_image.width;
+        new_image.data[i+2] = 0x80;
+        new_image.data[i+3] = 0;
+    }
+    return new_image;
+}
+
 bool window_closed = false;
 
 void window_destroyed(void) {
@@ -69,6 +86,9 @@ int main(void) {
     setup_window(800, 600);
     render_setup(200, 150);
 
+    Image temp = temp_img_gen();
+    new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
+
     // clock_gettime(CLOCK_REALTIME, &time);
     // nanosleep(&time, NULL);
     struct timespec start;
@@ -86,6 +106,7 @@ int main(void) {
         if (test_image.data == NULL) {
             temp_img();
         }
+        render_run(test_image);
         draw(test_image);
         handle_events(&callbacks);
         clock_gettime(CLOCK_REALTIME, &end);

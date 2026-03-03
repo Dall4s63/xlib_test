@@ -1,8 +1,6 @@
 #ifndef TACTICS_RENDER_H
 #define TACTICS_RENDER_H
 
-#include <types.h>
-
 typedef int DrawableId;
 
 int render_setup(int v_width, int v_height);
