@@ -43,34 +43,6 @@ static char *zbuffer;
 
 static Drawables drawables;
 
-DrawableId new_sprite(int x, int y, int width, int height, int depth, char *data) {
-    if (drawables.data_len >= drawables.data_buf_len) {
-        // TODO: resize the buffer
-    }
-    Drawable new;
-    new.sprite.type = SPRITE_TYPE;
-    new.sprite.x = x;
-    new.sprite.y = y;
-    new.sprite.width = width;
-    new.sprite.height = height;
-    new.sprite.depth = depth;
-    new.sprite.data = data;
-    int new_index = drawables.data_len;
-    drawables.data[new_index] = new;
-    drawables.data_len += 1;
-    if (new_index < drawables.ids_len) {
-        return drawables.index_to_ids[new_index];
-    } else {
-        if (drawables.ids_len >= drawables.ids_buf_len) {
-            // TODO resize buffer
-        }
-        drawables.ids_to_index[new_index] = new_index;
-        drawables.index_to_ids[new_index] = new_index;
-        drawables.ids_len += 1;
-        return new_index;
-    }
-}
-
 int render_setup(int v_width, int v_height) {
     virtual_width = v_width;
     virtual_height = v_height;
@@ -149,6 +121,62 @@ int render_run(Image canvas) {
         canvas.data[i + 3] = v_canvas.data[v_index + 3];
     }
     return 0;
+}
+
+int destroy_drawable(DrawableId id) {
+    // TODO check if the id is valid
+    if (id >= drawables.ids_len) {
+        return 1;
+    }
+    int index = drawables.ids_to_index[id];
+    if (index >= drawables.data_len) {
+        return 1;
+    }
+
+    switch (drawables.data[index].type) {
+    case SPRITE_TYPE:
+        free(drawables.data[index].sprite.data);
+        break;
+    }
+
+    int end_index = drawables.data_len - 1;
+    int end_id = drawables.index_to_ids[end_index];
+    drawables.data[index] = drawables.data[end_index];
+    drawables.ids_to_index[id] = end_index;
+    drawables.ids_to_index[end_id] = index;
+    drawables.index_to_ids[index] = end_id;
+    drawables.index_to_ids[end_index] = id;
+    drawables.data_len -= 1;
+
+    return 0;
+}
+
+DrawableId new_sprite(int x, int y, int width, int height, int depth, char *data) {
+    if (drawables.data_len >= drawables.data_buf_len) {
+        // TODO: resize the buffer
+    }
+    Drawable new;
+    new.sprite.type = SPRITE_TYPE;
+    new.sprite.x = x;
+    new.sprite.y = y;
+    new.sprite.width = width;
+    new.sprite.height = height;
+    new.sprite.depth = depth;
+    new.sprite.data = data;
+    int new_index = drawables.data_len;
+    drawables.data[new_index] = new;
+    drawables.data_len += 1;
+    if (new_index < drawables.ids_len) {
+        return drawables.index_to_ids[new_index];
+    } else {
+        if (drawables.ids_len >= drawables.ids_buf_len) {
+            // TODO resize buffer
+        }
+        drawables.ids_to_index[new_index] = new_index;
+        drawables.index_to_ids[new_index] = new_index;
+        drawables.ids_len += 1;
+        return new_index;
+    }
 }
 
 int sprite_set(DrawableId id, SpriteInfo vals, int mask) {

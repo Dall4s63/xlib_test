@@ -8,6 +8,7 @@ typedef int DrawableId;
 int render_setup(int v_width, int v_height);
 int render_run(Image canvas);
 
+int destroy_drawable(DrawableId id);
 DrawableId new_sprite(int x, int y, int width, int height, int depth, char *data);
 
 #define SPRITE_X        0x01

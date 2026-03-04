@@ -11,7 +11,7 @@
 int win_width = 600;
 int win_height = 400;
 
-int fps = 30;
+int fps = 60;
 
 Image test_image = {0, 0, 0};
 
