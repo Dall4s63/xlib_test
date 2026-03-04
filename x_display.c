@@ -12,6 +12,7 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
+// #include <X11/extensions/Xdbe.h>
 
 #include "display.h"
 
@@ -24,6 +25,7 @@ static Screen *screen;
 static Visual *visual;
 static int default_depth;
 static Window main_window;
+// static XdbeBackBuffer main_back_buffer;
 static GC main_gc;
 
 static KeySym *keysyms;
@@ -63,6 +65,12 @@ int setup_window(int width, int height) {
     display = XOpenDisplay(NULL);
     screen_number = DefaultScreen(display);
 
+    int num_ext; 
+    char **exts = XListExtensions(display, &num_ext);
+    for (int i = 0; i < num_ext; ++i) {
+        printf("extension: %s\n", exts[i]);
+    }
+
     screen = DefaultScreenOfDisplay(display);
 
     visual = DefaultVisualOfScreen(screen);
@@ -83,6 +91,8 @@ int setup_window(int width, int height) {
     XChangeProperty(display, main_window, wm_state, XA_ATOM, 32, PropModeReplace, (unsigned char *)&wm_state_full, 1);
 
     XMapWindow(display, main_window);
+
+    // main_back_buffer = XdbeAllocateBackBufferName(display, main_window, XdbeUndefined);
 
     // GC gc = XCreateGC(d, w, 0, NULL);
     main_gc = DefaultGC(display, screen_number);
@@ -128,7 +138,17 @@ int draw(Image in) {
     // XImage *img = XCreateImage(display, visual, default_depth,
     //     ZPixmap, 0, in.data, in.width, in.height, 32, 0);
     // Pixmap temp = XCreatePixmap(display, main_window, in.width, in.height, default_depth);
+    // XdbeBeginIdiom(display);
+    
+    // XdbeSwapInfo swap_info;
+    // swap_info.swap_window = main_window;
+    // swap_info.swap_action = XdbeUndefined;
+    // XdbeSwapBuffers(display, &swap_info, 1);
+
     XPutImage(display, main_window, main_gc, cur_img, 0, 0, 0, 0, in.width, in.height);
+
+    // XdbeEndIdiom(display);
+
     XFlush(display);
     return 0;
 }
