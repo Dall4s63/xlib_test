@@ -11,11 +11,11 @@
 int win_width = 600;
 int win_height = 400;
 
-int fps = 60;
+int fps = 30;
 
 Image test_image = {0, 0, 0};
 
-Image temp_img(void) {
+void temp_img(void) {
     test_image.width = win_width;
     test_image.height = win_height;
     test_image.data = malloc(sizeof(char) * 4 * test_image.width * test_image.height);
@@ -100,7 +100,6 @@ int main(void) {
     frame_time.tv_nsec = 1000000000 / fps;
     double dt = (double)frame_time.tv_nsec / 1.0e10;
 
-    int counter = 0;
     while (!window_closed) {
         clock_gettime(CLOCK_REALTIME, &start);
         handle_events(&callbacks);
@@ -109,11 +108,7 @@ int main(void) {
 
         sprite_get(temp_id, &s_info);
 
-        // counter += 1;
-        // if (counter > 2) {
-            s_info.x = (s_info.x + 1) % 100;
-            counter = 0;
-        // }
+        s_info.x = (s_info.x + 1) % 100;
 
         sprite_set(temp_id, s_info, SPRITE_X);
 
