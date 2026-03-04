@@ -65,18 +65,18 @@ int setup_window(int width, int height) {
     display = XOpenDisplay(NULL);
     screen_number = DefaultScreen(display);
 
-    int num_ext; 
-    char **exts = XListExtensions(display, &num_ext);
-    for (int i = 0; i < num_ext; ++i) {
-        printf("extension: %s\n", exts[i]);
-    }
+    // int num_ext; 
+    // char **exts = XListExtensions(display, &num_ext);
+    // for (int i = 0; i < num_ext; ++i) {
+    //     printf("extension: %s\n", exts[i]);
+    // }
 
-    int major_opcode, first_event, first_error;
-    if (XQueryExtension(display, "DOUBLE-BUFFER", &major_opcode, &first_event, &first_event)) {
-        printf("extension present with opcode %d\n", major_opcode);
-    } else {
-        printf("extension not presennt\n");
-    }
+    // int major_opcode, first_event, first_error;
+    // if (XQueryExtension(display, "DOUBLE-BUFFER", &major_opcode, &first_event, &first_event)) {
+    //     printf("extension present with opcode %d\n", major_opcode);
+    // } else {
+    //     printf("extension not presennt\n");
+    // }
 
     screen = DefaultScreenOfDisplay(display);
 
