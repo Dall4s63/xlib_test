@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall
-LDFLAGS = -lX11
+LDFLAGS = -lX11 -lXext
 SHELL = /bin/zsh
 
 sources = main.c x_display.c keyboard.c tactics_render.c
