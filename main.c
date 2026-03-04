@@ -7,6 +7,7 @@
 
 #include "display.h"
 #include "tactics_render.h"
+#include "game.h"
 
 int win_width = 600;
 int win_height = 400;
@@ -21,50 +22,33 @@ void temp_img(void) {
     test_image.data = malloc(sizeof(char) * 4 * test_image.width * test_image.height);
     if (test_image.data == NULL) { printf("Helpppp\n"); }
     memset(test_image.data, 0, 4 * test_image.width * test_image.height);
-    // for (int i = 0; i < 4 * test_image.width * test_image.height; i += 4) {
-    //     int row = i / 4 / test_image.width;
-    //     int col = (i / 4) % test_image.width;
-    //     test_image.data[i] = 0xff * row / test_image.height;
-    //     test_image.data[i+1] = 0xff * col / test_image.width;
-    //     test_image.data[i+2] = 0x80;
-    //     test_image.data[i+3] = 0;
-    // }
-}
-
-Image temp_img_gen(void) {
-    Image new_image;
-    new_image.width = 30;
-    new_image.height = 30;
-    new_image.data = malloc(sizeof(char) * 4 * new_image.width * new_image.height);
-    if (new_image.data == NULL) { printf("Helpppp\n"); }
-    for (int i = 0; i < 4 * new_image.width * new_image.height; i += 4) {
-        int row = i / 4 / new_image.width;
-        int col = (i / 4) % new_image.width;
-        new_image.data[i] = 0xff * row / new_image.height;
-        new_image.data[i+1] = 0xff * col / new_image.width;
-        new_image.data[i+2] = 0x80;
-        new_image.data[i+3] = 0;
-    }
-    return new_image;
 }
 
 bool window_closed = false;
 
-void window_destroyed(void) {
+void engine_window_destroyed(void) {
     // printf("window_destroyed callback called\n");
     window_closed = true;
+    window_destroyed();
 }
 
-void window_resized(int width, int height) {
+void engine_window_resized(int width, int height) {
     win_width = width;
     win_height = height;
     free(test_image.data);
     test_image.data = NULL;
 }
 
-void key_press(KeyId key, unsigned int scancode) {
+void engine_key_press(KeyId key, unsigned int scancode) {
     char *key_name = keyidstr(key);
     printf("Received key: %s\n", key_name);
+    key_press(key, scancode);
+}
+
+void engine_key_release(KeyId key, unsigned int scancode) {
+    // char *key_name = keyidstr(key);
+    // printf("Released key: %s\n", key_name);
+    key_release(key, scancode);
 }
 
 struct timespec timespec_sub(struct timespec a, struct timespec b) {
@@ -80,14 +64,16 @@ struct timespec timespec_sub(struct timespec a, struct timespec b) {
 int main(void) {
 
     EventCallbacks callbacks;
-    callbacks.window_destroyed = &window_destroyed;
-    callbacks.window_resized = &window_resized;
-    callbacks.key_press = &key_press;
+    callbacks.window_destroyed = &engine_window_destroyed;
+    callbacks.window_resized = &engine_window_resized;
+    callbacks.key_press = &engine_key_press;
+    callbacks.key_release = &engine_key_release;
     setup_window(800, 600);
-    render_setup(200, 150);
+    render_setup(320, 180);
 
-    Image temp = temp_img_gen();
-    DrawableId temp_id = new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
+    // Image temp = temp_img_gen();
+    // DrawableId temp_id = new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
+    game_load();
 
     // clock_gettime(CLOCK_REALTIME, &time);
     // nanosleep(&time, NULL);
@@ -104,13 +90,7 @@ int main(void) {
         clock_gettime(CLOCK_REALTIME, &start);
         handle_events(&callbacks);
 
-        SpriteInfo s_info;
-
-        sprite_get(temp_id, &s_info);
-
-        s_info.x = (s_info.x + 1) % 100;
-
-        sprite_set(temp_id, s_info, SPRITE_X);
+        game_update(dt);
 
         if (test_image.data == NULL) {
             temp_img();

@@ -3,7 +3,7 @@ CFLAGS = -Wall
 LDFLAGS = -lX11 -lXext
 SHELL = /bin/zsh
 
-sources = main.c x_display.c keyboard.c tactics_render.c
+sources = main.c x_display.c keyboard.c tactics_render.c game.c
 
 objects = $(patsubst %.c,%.o,$(sources))
 

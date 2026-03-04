@@ -86,7 +86,7 @@ int setup_window(int width, int height) {
 
     XSetWindowAttributes w_attr;
     w_attr.background_pixel = 0x202020;
-    w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask;
+    w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask | KeyReleaseMask;
     unsigned long w_attr_mask = CWEventMask | CWBackPixel;
 
     main_window = XCreateWindow(display, screen->root, 0, 0, width, height, 0,
@@ -229,6 +229,12 @@ int handle_events(EventCallbacks *callbacks) {
 
         // KeyReleaseMask
         case KeyRelease:
+            {
+            int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
+            KeySym key = keysyms[index];
+            KeyId id = keysym_to_keyid(key);
+            (*callbacks->key_release)(id, e.xkey.keycode);
+            }
             break;
 
         // StructureNotifyMask
