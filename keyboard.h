@@ -22,7 +22,7 @@
 
 #endif
 
-#define KB_NoSymbol    0x0000
+#define KB_NoSymbol     0x0000
 
 #ifdef KB_MISC
 
@@ -33,6 +33,22 @@
 #define KB_Up           0xff52
 #define KB_Right        0xff53
 #define KB_Down         0xff54
+
+#define KB_Shift_L      0xffe1
+#define KB_Shift_R      0xffe2
+#define KB_Control_L    0xffe3
+#define KB_Control_R    0xffe4
+#define KB_Caps_Lock     0xffe5
+#define KB_Shift_Lock    0xffe6
+
+#define KB_Meta_L       0xffe7
+#define KB_Meta_R       0xffe8
+#define KB_Alt_L        0xffe9
+#define KB_Alt_R        0xffea
+#define KB_Super_L      0xffeb
+#define KB_Super_R      0xffec
+#define KB_Hyper_L      0xffed
+#define KB_Hyper_R      0xffee
 
 #endif
 

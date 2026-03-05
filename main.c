@@ -69,7 +69,7 @@ int main(void) {
     callbacks.key_press = &engine_key_press;
     callbacks.key_release = &engine_key_release;
     setup_window(800, 600);
-    render_setup(320, 180);
+    render_setup(640, 360);
 
     // Image temp = temp_img_gen();
     // DrawableId temp_id = new_sprite(20, 20, temp.width, temp.height, 0, temp.data);

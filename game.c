@@ -46,8 +46,8 @@ void game_load() {
     obj.y = 0;
 
     Image new_image;
-    new_image.width = 30;
-    new_image.height = 30;
+    new_image.width = 16;
+    new_image.height = 24;
     new_image.data = malloc(sizeof(char) * 4 * new_image.width * new_image.height);
     if (new_image.data == NULL) { printf("Helpppp\n"); }
     for (int i = 0; i < 4 * new_image.width * new_image.height; i += 4) {

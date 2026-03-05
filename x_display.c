@@ -86,7 +86,8 @@ int setup_window(int width, int height) {
 
     XSetWindowAttributes w_attr;
     w_attr.background_pixel = 0x202020;
-    w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask | KeyReleaseMask;
+    w_attr.event_mask = StructureNotifyMask | ExposureMask | KeyPressMask | KeyReleaseMask
+        | ButtonPressMask | ButtonReleaseMask | PointerMotionMask ;
     unsigned long w_attr_mask = CWEventMask | CWBackPixel;
 
     main_window = XCreateWindow(display, screen->root, 0, 0, width, height, 0,
@@ -171,6 +172,20 @@ KeyId keysym_to_keyid(KeySym key) {
     case XK_Up: return KB_Up;
     case XK_Right: return KB_Right;
     case XK_Down: return KB_Down;
+    case XK_Shift_L: return KB_Shift_L;
+    case XK_Shift_R: return KB_Shift_R;
+    case XK_Control_L: return KB_Control_L;
+    case XK_Control_R: return KB_Control_R;
+    case XK_Caps_Lock: return KB_Caps_Lock;
+    case XK_Shift_Lock: return KB_Shift_Lock;
+    case XK_Meta_L: return KB_Meta_L;
+    case XK_Meta_R: return KB_Meta_R;
+    case XK_Alt_L: return KB_Alt_L;
+    case XK_Alt_R: return KB_Alt_R;
+    case XK_Super_L: return KB_Super_L;
+    case XK_Super_R: return KB_Super_R;
+    case XK_Hyper_L: return KB_Hyper_L;
+    case XK_Hyper_R: return KB_Hyper_R;
     case XK_a: case XK_A: return KB_A;
     case XK_b: case XK_B: return KB_B;
     case XK_c: case XK_C: return KB_C;
@@ -235,6 +250,10 @@ int handle_events(EventCallbacks *callbacks) {
             KeyId id = keysym_to_keyid(key);
             (*callbacks->key_release)(id, e.xkey.keycode);
             }
+            break;
+
+        // PointerMotionMask
+        case MotionNotify:
             break;
 
         // StructureNotifyMask

@@ -13,6 +13,23 @@ char *keyidstr(KeyId id) {
     case KB_Right: return "Right";
     case KB_Down: return "Down";
 
+    case KB_Shift_L: return "Left Shift";
+    case KB_Shift_R: return "Right Shift";
+    case KB_Control_L: return "Left Control";
+    case KB_Control_R: return "Right Control";
+    case KB_Caps_Lock: return "Caps Lock";
+    case KB_Shift_Lock: return "Shift Lock";
+
+    case KB_Meta_L: return "Left Meta";
+    case KB_Meta_R: return "Right Meta";
+    case KB_Alt_L: return "Left Alt";
+    case KB_Alt_R: return "Right Alt";
+    case KB_Super_L: return "Left Super";
+    case KB_Super_R: return "Right Super";
+    case KB_Hyper_L: return "Left Hyper";
+    case KB_Hyper_R: return "Right Hyper";
+
+
     case KB_A: return "A";
     case KB_B: return "B";
     case KB_C: return "C";
