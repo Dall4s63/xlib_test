@@ -38,6 +38,10 @@ static bool bad_drawable = false;
 
 static XImage *cur_img = NULL;
 
+static int *keys_down;
+static int keys_down_len;
+static int keys_down_buf_len;
+
 int error_handler(Display *d, XErrorEvent *e) {
     if (e->error_code == BadDrawable || e->error_code == BadWindow) {
         bad_drawable = true;
@@ -238,7 +242,7 @@ int handle_events(EventCallbacks *callbacks) {
             int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
             KeySym key = keysyms[index];
             KeyId id = keysym_to_keyid(key);
-            (*callbacks->key_press)(id, e.xkey.keycode);
+            (*callbacks->key_press)(id, e.xkey.keycode, false);
             }
             break;
 

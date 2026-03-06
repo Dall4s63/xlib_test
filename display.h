@@ -19,7 +19,7 @@ typedef struct _event_callbacks {
     void (*button_press)(int button, int x, int y);
     void (*button_release)(int button, int x, int y);
 
-    void (*key_press)(KeyId key, unsigned int scancode);
+    void (*key_press)(KeyId key, unsigned int scancode, bool is_repeat);
     void (*key_release)(KeyId key, unsigned int scancode);
 
     void (*window_resized)(int width, int height);

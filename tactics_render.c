@@ -92,7 +92,9 @@ int render_run(Image canvas) {
                 int col = (i / 4) - row * width;
                 int final_x = x + col;
                 int final_y = y + row;
-                // TODO out of bounds checking
+                if (final_x < 0 || final_x >= v_canvas.width || final_y < 0 || final_y >= v_canvas.height) {
+                    continue;
+                }
                 int v_index = final_y * v_canvas.width + final_x;
                 if (zbuffer[v_index] > depth) {
                     continue;

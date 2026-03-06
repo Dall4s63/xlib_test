@@ -11,39 +11,45 @@ typedef struct object {
     DrawableId sprite;
 } Object;
 
-static Object obj;
-static bool d_pressed = false;
-static bool s_pressed = false;
+static Object cursor;
 
 void window_destroyed(void) {
     // here we can do the game cleanup
 }
 
-void key_press(KeyId id, unsigned int scancode) {
+void key_press(KeyId id, unsigned int scancode, bool is_repeat) {
     switch (id) {
+    case KB_W:
+        cursor.y -= 24;
+        break;
+    case KB_A:
+        cursor.x -= 16;
+        break;
     case KB_D: 
-        d_pressed = true;
+        cursor.x += 16;
         break;
     case KB_S:
-        s_pressed = true;
+        cursor.y += 24;
         break;
     }
+    SpriteInfo info;
+    info.x = cursor.x;
+    info.y = cursor.y;
+    sprite_set(cursor.sprite, info, SPRITE_X | SPRITE_Y);
 }
 
 void key_release(KeyId id, unsigned int scancode) {
     switch (id) {
     case KB_D: 
-        d_pressed = false;
         break;
     case KB_S:
-        s_pressed = false;
         break;
     }
 }
 
 void game_load() {
-    obj.x = 0;
-    obj.y = 0;
+    cursor.x = 0;
+    cursor.y = 0;
 
     Image new_image;
     new_image.width = 16;
@@ -53,26 +59,21 @@ void game_load() {
     for (int i = 0; i < 4 * new_image.width * new_image.height; i += 4) {
         int row = i / 4 / new_image.width;
         int col = (i / 4) % new_image.width;
-        new_image.data[i] = 0xff * row / new_image.height;
-        new_image.data[i+1] = 0xff * col / new_image.width;
-        new_image.data[i+2] = 0x80;
-        new_image.data[i+3] = 0;
+        if (row == 0 || row == new_image.height-1 || col == 0 || col == new_image.width-1) {
+            new_image.data[i] = 0xff * row / new_image.height;
+            new_image.data[i+1] = 0xff * col / new_image.width;
+            new_image.data[i+2] = 0x80;
+            new_image.data[i+3] = 0;
+        } else {
+            new_image.data[i] = 0;
+            new_image.data[i+1] = 0;
+            new_image.data[i+2] = 0;
+            new_image.data[i+3] = 0;
+        }
     }
 
-    obj.sprite = new_sprite(0, 0, new_image.width, new_image.height, 0, new_image.data);
+    cursor.sprite = new_sprite(0, 0, new_image.width, new_image.height, 0, new_image.data);
 }
 
 void game_update(double dt) {
-    if (d_pressed) {
-        obj.x += 1;
-        SpriteInfo new_vals;
-        new_vals.x = obj.x;
-        sprite_set(obj.sprite, new_vals, SPRITE_X);
-    }
-    if (s_pressed) {
-        obj.y += 1;
-        SpriteInfo new_vals;
-        new_vals.y = obj.y;
-        sprite_set(obj.sprite, new_vals, SPRITE_Y);
-    }
 }

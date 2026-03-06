@@ -7,7 +7,7 @@
 
 void window_destroyed(void);
 // void window_resized();
-void key_press(KeyId id, unsigned int scancode);
+void key_press(KeyId id, unsigned int scancode, bool is_repeat);
 void key_release(KeyId id, unsigned int scancode);
 
 void game_load();
