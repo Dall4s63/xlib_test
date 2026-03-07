@@ -38,9 +38,13 @@ static bool bad_drawable = false;
 
 static XImage *cur_img = NULL;
 
-static int *keys_down;
-static int keys_down_len;
-static int keys_down_buf_len;
+// static unsigned int *keys_down;
+// static int keys_down_len = 0;
+// static int keys_down_buf_len = 10;
+
+// return true if the key is already in the list
+// bool add_key_down(unsigned int code);
+// void remove_key_down(unsigned int code);
 
 int error_handler(Display *d, XErrorEvent *e) {
     if (e->error_code == BadDrawable || e->error_code == BadWindow) {
@@ -119,6 +123,11 @@ int setup_window(int width, int height) {
 
     // XImage *cur_img = XCreateImage(display, visual, default_depth,
     //     ZPixmap, 0, in.data, in.width, in.height, 32, 0);
+
+    // keys_down = malloc(sizeof(unsigned int) * keys_down_buf_len);
+    // if (keys_down == NULL) {
+    //     // TODO we have a problem
+    // }
 
     return 0;
 }
@@ -242,6 +251,7 @@ int handle_events(EventCallbacks *callbacks) {
             int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
             KeySym key = keysyms[index];
             KeyId id = keysym_to_keyid(key);
+            // bool is_repeat = add_key_down(e.xkey.keycode);
             (*callbacks->key_press)(id, e.xkey.keycode, false);
             }
             break;
@@ -252,6 +262,7 @@ int handle_events(EventCallbacks *callbacks) {
             int index = (e.xkey.keycode - min_keycodes) * keysyms_per_code;
             KeySym key = keysyms[index];
             KeyId id = keysym_to_keyid(key);
+            //remove_key_down(e.xkey.keycode);
             (*callbacks->key_release)(id, e.xkey.keycode);
             }
             break;
@@ -288,4 +299,41 @@ int handle_events(EventCallbacks *callbacks) {
     }
     return 0;
 }
+
+// static unsigned int *keys_down;
+// static int keys_down_len;
+// static int keys_down_buf_len;
+
+// bool add_key_down(unsigned int code) {
+//     printf("\n");
+//     printf("keys_down_len: %d\n", keys_down_len);
+//     for (int i = 0; i < keys_down_len; ++i) {
+//         printf("checking code %u\n", keys_down[i]);
+//         if (keys_down[i] == code) {
+//             return true;
+//         }
+//     }
+//     if (keys_down_len >= keys_down_buf_len) {
+//         keys_down_buf_len = keys_down_buf_len * 2;
+//         keys_down = realloc(keys_down, keys_down_buf_len);
+//     }
+//     printf("didn't find a dupe for code %u\n", code);
+//     keys_down[keys_down_len] = code;
+//     keys_down_len = keys_down_len + 1;
+//     printf("keys_down_len: %d\n", keys_down_len);
+//     return false;
+// }
+// 
+// void remove_key_down(unsigned int code) {
+//     printf("remove key down code: %u\n", code);
+//     for (int i = 0; i < keys_down_len; ++i) {
+//         if (keys_down[i] == code) {
+//             for (int j = i; j < keys_down_len - 1; ++j) {
+//                 keys_down[j] = keys_down[j+1];
+//             }
+//             keys_down_len -= 1;
+//             break;
+//         }
+//     }
+// }
 

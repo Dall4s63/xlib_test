@@ -18,6 +18,9 @@ void window_destroyed(void) {
 }
 
 void key_press(KeyId id, unsigned int scancode, bool is_repeat) {
+    if (is_repeat) {
+        printf("Recieved a repeat\n");
+    }
     switch (id) {
     case KB_W:
         cursor.y -= 24;
@@ -39,12 +42,6 @@ void key_press(KeyId id, unsigned int scancode, bool is_repeat) {
 }
 
 void key_release(KeyId id, unsigned int scancode) {
-    switch (id) {
-    case KB_D: 
-        break;
-    case KB_S:
-        break;
-    }
 }
 
 void game_load() {
