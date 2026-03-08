@@ -60,6 +60,15 @@ int render_setup(int v_width, int v_height) {
     return 0;
 }
 
+// static double viewport_width = 0.5;
+// 
+// static DoubleVec2 cam_pos = { .x = 0.0, .y = 0.0 };
+// static DoubleVec2 cam_dir = { .x = 0.0, .y = 1.0 };
+// static double fov = 90.0;
+// static double cam_height = 1.5;
+// 
+// static MapRoom temp_room;
+
 void render_run(Image out_canvas) {
     /*
      * The plan:
@@ -71,8 +80,14 @@ void render_run(Image out_canvas) {
      *    the height that the wall would appear on screen
      *  - draw the the column
      */
-    double wall_height = 15.0;
+    double wall_height = 3.0;
     for (int col = 0; col < v_canvas.width; ++col) {
+        // TODO for now just assume the fov is 90
+        double viewport_dist = viewport_width / 2;
+        // TODO for now also we won't rotate the viewport toward the camera
+        DoubleVec2 viewport_point;
+        viewport_point.x = (double)col / (double)v_canvas.width * viewport_width - viewport_width / 2.0 + cam_pos.x;
+        viewport_point.y = viewport_dist + cam_pos.y;
     }
 }
 
