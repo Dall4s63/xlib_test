@@ -6,8 +6,9 @@
 #include <string.h>
 
 #include "display.h"
-#include "tactics_render.h"
+// #include "tactics_render.h"
 #include "game.h"
+#include "doom_render.h"
 
 int win_width = 600;
 int win_height = 400;
@@ -95,6 +96,7 @@ int main(void) {
         if (test_image.data == NULL) {
             temp_img();
         }
+        // render_run(test_image);
         render_run(test_image);
         draw(test_image);
         handle_events(&callbacks);

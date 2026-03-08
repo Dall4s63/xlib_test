@@ -1,5 +1,3 @@
-game.o: game.c tactics_render.h display.h keyboard.h game.h
-tactics_render.h:
-display.h:
+game.o: game.c keyboard.h game.h
 keyboard.h:
 game.h:
