@@ -56,6 +56,8 @@ int render_setup(int v_width, int v_height) {
         .a = (DoubleVec2){ .x = -20.0, .y = -20.0 },
         .b = (DoubleVec2){ .x =  20.0, .y = -20.0 }
     };
+    temp_room.walls_buf_len = 4;
+    temp_room.walls_len = 4;
 
     return 0;
 }
@@ -84,10 +86,23 @@ void render_run(Image out_canvas) {
     for (int col = 0; col < v_canvas.width; ++col) {
         // TODO for now just assume the fov is 90
         double viewport_dist = viewport_width / 2;
-        // TODO for now also we won't rotate the viewport toward the camera
+        // TODO for now also we won't rotate the viewport to match the camera
         DoubleVec2 viewport_point;
         viewport_point.x = (double)col / (double)v_canvas.width * viewport_width - viewport_width / 2.0 + cam_pos.x;
         viewport_point.y = viewport_dist + cam_pos.y;
+        DoubleLine ray = double_line_from(cam_pos, viewport_point);
+        double distance = 0.0;
+        int wall_i = -1;
+        for (int i = 0; i < temp_room.walls_len; ++i) {
+            DoubleVec2 end_a = temp_room.walls[i].a;
+            DoubleVec2 end_b = temp_room.walls[i].b;
+            DoubleVec2 i_point;
+            bool res = double_line_in_segment(ray, end_a, end_b, &i_point);
+            if (res) {
+            }
+        }
+        for (int row = 0; row < v_canvas.height; ++row) {
+        }
     }
 }
 

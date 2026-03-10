@@ -1,5 +1,44 @@
 #include "double_vec2.h"
 
+double dot_product(DoubleVec2 a, DoubleVec2 b) {
+    return a.x * b.x + a.y * b.y;
+}
+
+bool double_ray_in_segment(DoubleRay ray, DoubleVec2 point1, DoubleVec2 point2, DoubleVec2 *ret) {
+    DoubleVec2 a = ray.dir;
+    DoubleVec2 b = ray.origin;
+
+    DoubleVec2 c;
+    c.x = point2.x - point1.x;
+    c.y = point2.y - point1.y;
+    DoubleVec2 d = point1;
+
+    double temp1 = d.y - b.y - a.y / a.x * (d.x - b.x);
+    double temp2 = a.y * c.x / a.x - c.y
+    if (temp2 <= 1e-12 && temp2 >= -1e-12) {
+        return false;
+    }
+    double lambda2 = temp1 / temp2;
+    double lambda1 = (d.x - b.x + c.x * lambda2) / a.x
+
+    return true;
+}
+
+bool double_line_in_segment(DoubleLine l1, DoubleVec2 a, DoubleVec2 b, DoubleVec2 *ret) {
+    DoubleLine other_line = double_line_from(a, b);
+    bool res = double_line_intersect(l1, other_line, ret);
+    if (!res) {
+        return false;
+    }
+    double x1, x2, y1, y2;
+    if (a.x < b.x) { x1 = a.x; x2 = b.x; } else { x1 = b.x; x2 = a.x; }
+    if (a.y < b.y) { y1 = a.y; y2 = b.y; } else { y1 = b.y; y2 = a.y; }
+    if (ret->x < x1 || ret->x > x2 || ret->y < y1 || ret->y > y2) {
+        return false;
+    }
+    return true;
+}
+
 bool double_line_intersect(DoubleLine l1, DoubleLine l2, DoubleVec2 *ret) {
     double mul1 = l2.a / l1.a;
     double b2 = l2.b - l1.b * mul1;
