@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall
-LDFLAGS = -lX11 -lXext
+LDFLAGS = -lX11 -lXext -lm
 SHELL = /bin/zsh
 
 sources = main.c x_display.c keyboard.c game.c double_vec2.c doom_render.c

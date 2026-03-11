@@ -4,6 +4,10 @@ double dot_product(DoubleVec2 a, DoubleVec2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
+bool is_almost_zero(double a) {
+    return -1e-12 <= a && a <= 1e-12;
+}
+
 bool double_ray_in_segment(DoubleRay ray, DoubleVec2 point1, DoubleVec2 point2, DoubleVec2 *ret) {
     DoubleVec2 a = ray.dir;
     DoubleVec2 b = ray.origin;
@@ -14,12 +18,23 @@ bool double_ray_in_segment(DoubleRay ray, DoubleVec2 point1, DoubleVec2 point2, 
     DoubleVec2 d = point1;
 
     double temp1 = d.y - b.y - a.y / a.x * (d.x - b.x);
-    double temp2 = a.y * c.x / a.x - c.y
-    if (temp2 <= 1e-12 && temp2 >= -1e-12) {
+    double temp2 = a.y * c.x / a.x - c.y;
+    if (is_almost_zero(temp2)) {
         return false;
     }
     double lambda2 = temp1 / temp2;
-    double lambda1 = (d.x - b.x + c.x * lambda2) / a.x
+    double lambda1 = (d.x - b.x + c.x * lambda2) / a.x;
+
+    if (lambda1 < 0) {
+        return false;
+    }
+
+    if (lambda2 < 0 || lambda2 > 1) {
+        return false;
+    }
+
+    ret->x = ray.dir.x * lambda1;
+    ret->y = ray.dir.y * lambda1;
 
     return true;
 }

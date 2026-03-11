@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+// #include <math.h>
 
 #include "double_vec2.h"
 #include "doom_render.h"
@@ -71,38 +72,88 @@ int render_setup(int v_width, int v_height) {
 // 
 // static MapRoom temp_room;
 
-void render_run(Image out_canvas) {
-    /*
-     * The plan:
-     *  - loop over each column of the virtual canvas
-     *  - for each column, find its position using the 
-     *    viewport_width and fov, then draw a line from the 
-     *    camera's position.
-     *  - find the closest intersecting wall and calculate
-     *    the height that the wall would appear on screen
-     *  - draw the the column
-     */
+void render_run(Image canvas) {
+
     double wall_height = 3.0;
+
     for (int col = 0; col < v_canvas.width; ++col) {
+
         // TODO for now just assume the fov is 90
         double viewport_dist = viewport_width / 2;
+
         // TODO for now also we won't rotate the viewport to match the camera
-        DoubleVec2 viewport_point;
-        viewport_point.x = (double)col / (double)v_canvas.width * viewport_width - viewport_width / 2.0 + cam_pos.x;
-        viewport_point.y = viewport_dist + cam_pos.y;
-        DoubleLine ray = double_line_from(cam_pos, viewport_point);
+        DoubleRay ray;
+        ray.dir.x = (double)col / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
+        ray.dir.y = viewport_dist;
+        ray.origin = cam_pos;
         double distance = 0.0;
         int wall_i = -1;
+
         for (int i = 0; i < temp_room.walls_len; ++i) {
             DoubleVec2 end_a = temp_room.walls[i].a;
             DoubleVec2 end_b = temp_room.walls[i].b;
             DoubleVec2 i_point;
-            bool res = double_line_in_segment(ray, end_a, end_b, &i_point);
+            bool res = double_ray_in_segment(ray, end_a, end_b, &i_point);
             if (res) {
+                printf("i_point: (%lf, %lf)\n", i_point.x, i_point.y);
+                // DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam_pos.x, .y = i_point.y - cam_pos.y };
+                // TODO this also needs to be the proper perpendicular distance
+                double d = i_point.y - cam_pos.y;
+                if (d > distance) {
+                    distance = d;
+                    wall_i = i;
+                }
             }
         }
+
+        double aspect = (double)v_canvas.width / (double)v_canvas.height;
+        double viewport_height = viewport_width / aspect;
+        int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) * (double)v_canvas.height + (double)v_canvas.height/2);
+        // printf("wall_top: %lf, %d\n", (wall_height - cam_height) * (viewport_dist / distance), wall_top);
+        // int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) + viewport_height/2);
+        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (viewport_dist / distance) * (double)v_canvas.height);
+
+        wall_top = v_canvas.height - wall_top;
+        wall_bot = v_canvas.height - wall_bot;
+        printf("wall_top: %d\n", wall_top);
+        printf("wall_bot: %d\n", wall_bot);
+
         for (int row = 0; row < v_canvas.height; ++row) {
+            int i = (row * v_canvas.width + col) * 4;
+            if (row < wall_top) {
+                // ceiling
+                v_canvas.data[i]   = 0x10;
+                v_canvas.data[i+1] = 0x10;
+                v_canvas.data[i+2] = 0x80;
+                v_canvas.data[i+3] = 0xff;
+                continue;
+            }
+            if (row > wall_bot) {
+                // floor
+                v_canvas.data[i]   = 0x10;
+                v_canvas.data[i+1] = 0x40;
+                v_canvas.data[i+2] = 0x80;
+                v_canvas.data[i+3] = 0xff;
+                continue;
+            }
+            // wall
+            v_canvas.data[i]   = 0x10;
+            v_canvas.data[i+1] = 0xc0;
+            v_canvas.data[i+2] = 0x10;
+            v_canvas.data[i+3] = 0xff;
         }
+    }
+
+    for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
+        int row = i / 4 / canvas.width;
+        int col = i / 4 - row * canvas.width;
+        int v_row = row * v_canvas.height / canvas.height;
+        int v_col = col * v_canvas.width / canvas.width;
+        int v_index = (v_row * v_canvas.width + v_col) * 4;
+        canvas.data[i + 0] = v_canvas.data[v_index + 0];
+        canvas.data[i + 1] = v_canvas.data[v_index + 1];
+        canvas.data[i + 2] = v_canvas.data[v_index + 2];
+        canvas.data[i + 3] = v_canvas.data[v_index + 3];
     }
 }
 
