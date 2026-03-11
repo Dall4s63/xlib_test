@@ -40,17 +40,19 @@ int render_setup(int v_width, int v_height) {
         return 1;
     }
 
-    temp_room.walls = malloc(sizeof(MapWall) * 12);
+    temp_room.walls_buf_len = 12;
+    temp_room.walls_len = 12;
+    temp_room.walls = malloc(sizeof(MapWall) * temp_room.walls_buf_len);
     temp_room.walls[0] = (MapWall) {
         .a = (DoubleVec2){ .x = -10.0, .y = - 5.0 },
-        .b = (DoubleVec2){ .x = -10.0, .y =   5.0 }
+        .b = (DoubleVec2){ .x = -10.0, .y =   7.0 }
     };
     temp_room.walls[1] = (MapWall) {
-        .a = (DoubleVec2){ .x = -10.0, .y =   5.0 },
-        .b = (DoubleVec2){ .x = - 5.0, .y =   5.0 }
+        .a = (DoubleVec2){ .x = -10.0, .y =   7.0 },
+        .b = (DoubleVec2){ .x = - 5.0, .y =   7.0 }
     };
     temp_room.walls[2] = (MapWall) {
-        .a = (DoubleVec2){ .x = - 5.0, .y =   5.0 },
+        .a = (DoubleVec2){ .x = - 5.0, .y =   7.0 },
         .b = (DoubleVec2){ .x = - 5.0, .y =  10.0 }
     };
     temp_room.walls[3] = (MapWall) {
@@ -59,38 +61,36 @@ int render_setup(int v_width, int v_height) {
     };
     temp_room.walls[4] = (MapWall) {
         .a = (DoubleVec2){ .x =   5.0, .y =  10.0 },
-        .b = (DoubleVec2){ .x =   5.0, .y =   5.0 }
-    };
-    temp_room.walls[4] = (MapWall) {
-        .a = (DoubleVec2){ .x =   5.0, .y =   5.0 },
-        .b = (DoubleVec2){ .x =  10.0, .y =   5.0 }
+        .b = (DoubleVec2){ .x =   5.0, .y =   7.0 }
     };
     temp_room.walls[5] = (MapWall) {
-        .a = (DoubleVec2){ .x =  10.0, .y =   5.0 },
-        .b = (DoubleVec2){ .x =  10.0, .y = - 5.0 }
+        .a = (DoubleVec2){ .x =   5.0, .y =   7.0 },
+        .b = (DoubleVec2){ .x =  10.0, .y =   7.0 }
     };
     temp_room.walls[6] = (MapWall) {
+        .a = (DoubleVec2){ .x =  10.0, .y =   7.0 },
+        .b = (DoubleVec2){ .x =  10.0, .y = - 5.0 }
+    };
+    temp_room.walls[7] = (MapWall) {
         .a = (DoubleVec2){ .x =  10.0, .y = - 5.0 },
         .b = (DoubleVec2){ .x =   5.0, .y = - 5.0 }
     };
-    temp_room.walls[7] = (MapWall) {
+    temp_room.walls[8] = (MapWall) {
         .a = (DoubleVec2){ .x =   5.0, .y = - 5.0 },
         .b = (DoubleVec2){ .x =   5.0, .y = -10.0 }
     };
-    temp_room.walls[8] = (MapWall) {
+    temp_room.walls[9] = (MapWall) {
         .a = (DoubleVec2){ .x =   5.0, .y = -10.0 },
         .b = (DoubleVec2){ .x = - 5.0, .y = -10.0 }
     };
-    temp_room.walls[9] = (MapWall) {
+    temp_room.walls[10] = (MapWall) {
         .a = (DoubleVec2){ .x = - 5.0, .y = -10.0 },
         .b = (DoubleVec2){ .x = - 5.0, .y = - 5.0 }
     };
-    temp_room.walls[ 5] = (MapWall) {
+    temp_room.walls[11] = (MapWall) {
         .a = (DoubleVec2){ .x = - 5.0, .y = - 5.0 },
         .b = (DoubleVec2){ .x = -10.0, .y = - 5.0 }
     };
-    temp_room.walls_buf_len = 4;
-    temp_room.walls_len = 4;
 
     return 0;
 }
@@ -169,10 +169,17 @@ void render_run(Image canvas) {
                 continue;
             }
             // wall
-            v_canvas.data[i]   = 0x10;
-            v_canvas.data[i+1] = 0xc0;
-            v_canvas.data[i+2] = 0x10;
-            v_canvas.data[i+3] = 0xff;
+            if (wall_i % 2) {
+                v_canvas.data[i]   = 0x10;
+                v_canvas.data[i+1] = 0xc0;
+                v_canvas.data[i+2] = 0x10;
+                v_canvas.data[i+3] = 0xff;
+            } else {
+                v_canvas.data[i]   = 0x10;
+                v_canvas.data[i+1] = 0x90;
+                v_canvas.data[i+2] = 0x10;
+                v_canvas.data[i+3] = 0xff;
+            }
         }
     }
 
