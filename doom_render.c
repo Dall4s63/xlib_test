@@ -195,6 +195,7 @@ void render_run(Image canvas) {
                 // floor
                 double row_height = ((double)(row) + 0.5) / (double)v_canvas.height * viewport_height - viewport_height / 2.0;
                 DoubleVec2 spot;
+                // TODO figure out why we need to multiply by viewport_height to make it look right
                 double dist = dtp * viewport_height * cam_height / row_height;
                 spot.x = cam_pos.x + ray.dir.x * dist;
                 spot.y = cam_pos.y + ray.dir.y * dist;
