@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-// #include <math.h>
+#include <math.h>
 
 #include "double_vec2.h"
 #include "doom_render.h"
@@ -106,7 +106,8 @@ int render_setup(int v_width, int v_height) {
 
 void render_run(Image canvas) {
 
-    double wall_height = 3.0;
+    // TODO walls/rooms should determine the height of the walls
+    double wall_height = 4.0;
 
     for (int col = 0; col < v_canvas.width; ++col) {
 
@@ -115,10 +116,11 @@ void render_run(Image canvas) {
 
         // TODO for now also we won't rotate the viewport to match the camera
         DoubleRay ray;
-        ray.dir.x = (double)col / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
+        ray.dir.x = ((double)col + 0.5) / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
         ray.dir.y = viewport_dist;
         ray.origin = cam_pos;
-        double distance = 0.0;
+        // TODO find a suitably large number
+        double distance = 100000.0;
         int wall_i = -1;
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
@@ -128,10 +130,11 @@ void render_run(Image canvas) {
             bool res = double_ray_in_segment(ray, end_a, end_b, &i_point);
             if (res) {
                 // printf("i_point: (%lf, %lf)\n", i_point.x, i_point.y);
-                // DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam_pos.x, .y = i_point.y - cam_pos.y };
-                // TODO this also needs to be the proper perpendicular distance
-                double d = i_point.y - cam_pos.y;
-                if (d > distance) {
+                DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam_pos.x, .y = i_point.y - cam_pos.y };
+                // TODO this also needs to be fixed
+                // double d = i_point.y - cam_pos.y;
+                double d = sqrt(vec.x * vec.x + vec.y * vec.y);
+                if (d < distance) {
                     distance = d;
                     wall_i = i;
                 }
@@ -140,15 +143,22 @@ void render_run(Image canvas) {
 
         double aspect = (double)v_canvas.width / (double)v_canvas.height;
         double viewport_height = viewport_width / aspect;
-        int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) * (double)v_canvas.height + (double)v_canvas.height/2);
+        double v_from_center = ((double)col - (double)v_canvas.width / 2.0) / (double)v_canvas.width * viewport_width;
+        double dtp = sqrt(viewport_dist * viewport_dist + v_from_center * v_from_center);
+        int wall_top = (int)((wall_height - cam_height) * (dtp / distance) * (double)v_canvas.height + (double)v_canvas.height/2);
         // printf("wall_top: %lf, %d\n", (wall_height - cam_height) * (viewport_dist / distance), wall_top);
         // int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) + viewport_height/2);
-        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (viewport_dist / distance) * (double)v_canvas.height);
+        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (dtp / distance) * (double)v_canvas.height);
 
         wall_top = v_canvas.height - wall_top;
         wall_bot = v_canvas.height - wall_bot;
         // printf("wall_top: %d\n", wall_top);
         // printf("wall_bot: %d\n", wall_bot);
+        
+        if (distance < dtp) { 
+            wall_top = v_canvas.height / 2 + 1;
+            wall_bot = v_canvas.height / 2 + 1;
+        }
 
         for (int row = 0; row < v_canvas.height; ++row) {
             int i = (row * v_canvas.width + col) * 4;
@@ -194,5 +204,12 @@ void render_run(Image canvas) {
         canvas.data[i + 2] = v_canvas.data[v_index + 2];
         canvas.data[i + 3] = v_canvas.data[v_index + 3];
     }
+}
+
+DoubleVec2 cam_pos_add(DoubleVec2 v) {
+    return (DoubleVec2) {
+        .x = cam_pos.x += v.x,
+        .y = cam_pos.y += v.y,
+    };
 }
 

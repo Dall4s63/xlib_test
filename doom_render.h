@@ -23,4 +23,6 @@ typedef struct _map_room {
 int render_setup(int v_width, int v_height);
 void render_run(Image out_canvas);
 
+DoubleVec2 cam_pos_add(DoubleVec2 v);
+
 #endif

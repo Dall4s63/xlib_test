@@ -42,7 +42,7 @@ void engine_window_resized(int width, int height) {
 
 void engine_key_press(KeyId key, unsigned int scancode, bool is_repeat) {
     char *key_name = keyidstr(key);
-    printf("Received key: %s\n", key_name);
+    // printf("Received key: %s\n", key_name);
     key_press(key, scancode, is_repeat);
 }
 
