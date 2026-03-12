@@ -127,7 +127,7 @@ void render_run(Image canvas) {
             DoubleVec2 i_point;
             bool res = double_ray_in_segment(ray, end_a, end_b, &i_point);
             if (res) {
-                printf("i_point: (%lf, %lf)\n", i_point.x, i_point.y);
+                // printf("i_point: (%lf, %lf)\n", i_point.x, i_point.y);
                 // DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam_pos.x, .y = i_point.y - cam_pos.y };
                 // TODO this also needs to be the proper perpendicular distance
                 double d = i_point.y - cam_pos.y;
@@ -147,8 +147,8 @@ void render_run(Image canvas) {
 
         wall_top = v_canvas.height - wall_top;
         wall_bot = v_canvas.height - wall_bot;
-        printf("wall_top: %d\n", wall_top);
-        printf("wall_bot: %d\n", wall_bot);
+        // printf("wall_top: %d\n", wall_top);
+        // printf("wall_bot: %d\n", wall_bot);
 
         for (int row = 0; row < v_canvas.height; ++row) {
             int i = (row * v_canvas.width + col) * 4;

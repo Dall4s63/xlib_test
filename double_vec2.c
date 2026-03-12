@@ -1,29 +1,56 @@
+#include <assert.h>
+#include <stdio.h>
+
 #include "double_vec2.h"
 
 double dot_product(DoubleVec2 a, DoubleVec2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-bool is_almost_zero(double a) {
-    return -1e-12 <= a && a <= 1e-12;
+bool is_almost(double a, double b) {
+    return b-1e-12 <= a && a <= b+1e-12;
 }
 
 bool double_ray_in_segment(DoubleRay ray, DoubleVec2 point1, DoubleVec2 point2, DoubleVec2 *ret) {
     DoubleVec2 a = ray.dir;
+    assert(!is_almost(a.x, 0.0) || !is_almost(a.y, 0.0));
     DoubleVec2 b = ray.origin;
 
     DoubleVec2 c;
     c.x = point2.x - point1.x;
     c.y = point2.y - point1.y;
+    assert(!is_almost(c.x, 0.0) || !is_almost(c.y, 0.0));
     DoubleVec2 d = point1;
 
-    double temp1 = d.y - b.y - a.y / a.x * (d.x - b.x);
-    double temp2 = a.y * c.x / a.x - c.y;
-    if (is_almost_zero(temp2)) {
+    if (is_almost(a.x, 0.0) && is_almost(c.x, 0.0)) {
         return false;
     }
-    double lambda2 = temp1 / temp2;
-    double lambda1 = (d.x - b.x + c.x * lambda2) / a.x;
+
+    if (is_almost(a.y, 0.0) && is_almost(c.y, 0.0)) {
+        return false;
+    }
+
+    double lambda1 = -1.0;
+    double lambda2 = -1.0;
+    if (is_almost(a.x, 0.0)) {
+        printf("running a.x is zero\n");
+        lambda2 = (b.x - d.x) / c.x;
+        lambda1 = (d.y - b.y + lambda2*c.y) / a.y;
+        printf("lambda1: %lf, lambda2: %lf\n", lambda1, lambda2);
+    } else if (is_almost(a.y, 0.0)) {
+        printf("running a.y is zero\n");
+        lambda2 = (b.y - d.y) / c.y;
+        lambda1 = (d.x - b.x + lambda2*c.x) / a.x;
+    } else {
+        double temp1 = d.y - b.y - a.y / a.x * (d.x - b.x);
+        double temp2 = a.y * c.x / a.x - c.y;
+        if (is_almost(temp2, 0.0)) {
+            return false;
+        }
+
+        lambda2 = temp1 / temp2;
+        lambda1 = (d.x - b.x + c.x * lambda2) / a.x;
+    }
 
     if (lambda1 < 0) {
         return false;
