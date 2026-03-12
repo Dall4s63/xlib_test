@@ -20,7 +20,8 @@ static char *zbuffer;
 static double viewport_width = 0.5;
 
 static DoubleVec2 cam_pos = { .x = 0.0, .y = 0.0 };
-static DoubleVec2 cam_dir = { .x = 0.0, .y = 1.0 };
+// static DoubleVec2 cam_dir = { .x = 1.0, .y = 0.0 };
+static double cam_angle = 0.0;
 static double fov = 90.0;
 static double cam_height = 1.5;
 
@@ -117,7 +118,8 @@ void render_run(Image canvas) {
         // TODO for now also we won't rotate the viewport to match the camera
         DoubleRay ray;
         ray.dir.x = ((double)col + 0.5) / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
-        ray.dir.y = viewport_dist;
+        ray.dir.y = viewport_dist; 
+        ray.dir = vec_rotate(ray.dir, cam_angle);
         ray.origin = cam_pos;
         // TODO find a suitably large number
         double distance = 100000.0;
@@ -211,5 +213,9 @@ DoubleVec2 cam_pos_add(DoubleVec2 v) {
         .x = cam_pos.x += v.x,
         .y = cam_pos.y += v.y,
     };
+}
+
+double cam_angle_add(double a) {
+    return cam_angle += a;
 }
 

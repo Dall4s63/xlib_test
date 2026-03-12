@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "double_vec2.h"
 
@@ -9,6 +10,13 @@ double dot_product(DoubleVec2 a, DoubleVec2 b) {
 
 DoubleVec2 scalar_product(DoubleVec2 a, double x) {
     return (DoubleVec2) { .x = a.x * x, .y = a.y * x };
+}
+
+DoubleVec2 vec_rotate(DoubleVec2 a, double angle) {
+    return (DoubleVec2) { 
+        .x = a.x * cos(angle) - a.y * sin(angle), 
+        .y = a.x * sin(angle) + a.y * cos(angle) 
+    };
 }
 
 bool is_almost(double a, double b) {
