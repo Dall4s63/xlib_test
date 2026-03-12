@@ -12,6 +12,11 @@ DoubleVec2 scalar_product(DoubleVec2 a, double x) {
     return (DoubleVec2) { .x = a.x * x, .y = a.y * x };
 }
 
+DoubleVec2 vec_normalize(DoubleVec2 a) {
+    double length = sqrt(a.x*a.x + a.y*a.y);
+    return (DoubleVec2) { .x = a.x / length, .y = a.y / length };
+}
+
 DoubleVec2 vec_rotate(DoubleVec2 a, double angle) {
     return (DoubleVec2) { 
         .x = a.x * cos(angle) - a.y * sin(angle), 

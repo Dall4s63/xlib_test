@@ -5,8 +5,15 @@
 #ifndef DOOM_RENDER_H
 #define DOOM_RENDER_H
 
+#include <stdint.h>
+
 #include "display.h"
 #include "double_vec2.h"
+
+typedef union _rgba_color {
+    uint32_t value;
+    char     rgba[4];
+} RGBAColor;
 
 typedef struct _map_wall {
     DoubleVec2 a;

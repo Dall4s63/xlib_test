@@ -23,7 +23,7 @@ static DoubleVec2 cam_pos = { .x = 0.0, .y = 0.0 };
 // static DoubleVec2 cam_dir = { .x = 1.0, .y = 0.0 };
 static double cam_angle = 0.0;
 static double fov = 90.0;
-static double cam_height = 1.5;
+static double cam_height = 1.8;
 
 static MapRoom temp_room;
 
@@ -105,6 +105,22 @@ int render_setup(int v_width, int v_height) {
 // 
 // static MapRoom temp_room;
 
+RGBAColor floor_color_at(DoubleVec2 a) {
+    RGBAColor out;
+    if ((((int)a.x + (int)a.y) % 2) == 0) {
+        out.rgba[0] = 0x10;
+        out.rgba[1] = 0xc0;
+        out.rgba[2] = 0x10;
+        out.rgba[3] = 0xff;
+    } else {
+        out.rgba[0] = 0x10;
+        out.rgba[1] = 0xa0;
+        out.rgba[2] = 0x10;
+        out.rgba[3] = 0xff;
+    }
+    return out;
+}
+
 void render_run(Image canvas) {
 
     // TODO walls/rooms should determine the height of the walls
@@ -119,6 +135,7 @@ void render_run(Image canvas) {
         DoubleRay ray;
         ray.dir.x = ((double)col + 0.5) / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
         ray.dir.y = viewport_dist; 
+        ray.dir = vec_normalize(ray.dir);
         ray.dir = vec_rotate(ray.dir, cam_angle);
         ray.origin = cam_pos;
         // TODO find a suitably large number
@@ -164,6 +181,7 @@ void render_run(Image canvas) {
 
         for (int row = 0; row < v_canvas.height; ++row) {
             int i = (row * v_canvas.width + col) * 4;
+
             if (row < wall_top) {
                 // ceiling
                 v_canvas.data[i]   = 0x10;
@@ -172,14 +190,31 @@ void render_run(Image canvas) {
                 v_canvas.data[i+3] = 0xff;
                 continue;
             }
+
             if (row > wall_bot) {
                 // floor
-                v_canvas.data[i]   = 0x10;
-                v_canvas.data[i+1] = 0x40;
-                v_canvas.data[i+2] = 0x80;
-                v_canvas.data[i+3] = 0xff;
+                double row_height = ((double)(row) + 0.5) / (double)v_canvas.height * viewport_height - viewport_height / 2.0;
+                DoubleVec2 spot;
+                double dist = dtp * viewport_height * cam_height / row_height;
+                spot.x = cam_pos.x + ray.dir.x * dist;
+                spot.y = cam_pos.y + ray.dir.y * dist;
+                RGBAColor c;
+                if (dist < 10.0) {
+                    c = floor_color_at(spot);
+                } else {
+                    c.rgba[0] = 0x10;
+                    c.rgba[1] = 0xa0;
+                    c.rgba[2] = 0x10;
+                    c.rgba[3] = 0xff;
+                }
+                // printf("spot.x: %lf, spot.y: %lf\n", row_height, dtp);
+                v_canvas.data[i]   = c.rgba[3];
+                v_canvas.data[i+1] = c.rgba[2];
+                v_canvas.data[i+2] = c.rgba[1];
+                v_canvas.data[i+3] = c.rgba[0];
                 continue;
             }
+
             // wall
             if (wall_i % 2) {
                 v_canvas.data[i]   = 0x10;
