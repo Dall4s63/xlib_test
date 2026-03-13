@@ -96,26 +96,16 @@ int render_setup(int v_width, int v_height) {
     return 0;
 }
 
-// static double viewport_width = 0.5;
-// 
-// static DoubleVec2 cam_pos = { .x = 0.0, .y = 0.0 };
-// static DoubleVec2 cam_dir = { .x = 0.0, .y = 1.0 };
-// static double fov = 90.0;
-// static double cam_height = 1.5;
-// 
-// static MapRoom temp_room;
-
 void render_run(Image canvas) {
 
     // TODO walls/rooms should determine the height of the walls
-    double wall_height = 4.0;
+    double wall_height = 10.0;
 
     for (int col = 0; col < v_canvas.width; ++col) {
 
         // TODO for now just assume the fov is 90
         double viewport_dist = viewport_width / 2;
 
-        // TODO for now also we won't rotate the viewport to match the camera
         DoubleRay ray;
         ray.dir.x = ((double)col + 0.5) / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
         ray.dir.y = viewport_dist; 
@@ -146,12 +136,15 @@ void render_run(Image canvas) {
 
         double aspect = (double)v_canvas.width / (double)v_canvas.height;
         double viewport_height = viewport_width / aspect;
-        double v_from_center = ((double)col - (double)v_canvas.width / 2.0) / (double)v_canvas.width * viewport_width;
+        double v_from_center = ((double)col - (double)v_canvas.width / 2.0) / (double)v_canvas.width 
+                               * viewport_width;
         double dtp = sqrt(viewport_dist * viewport_dist + v_from_center * v_from_center);
-        int wall_top = (int)((wall_height - cam_height) * (dtp / distance) * (double)v_canvas.height + (double)v_canvas.height/2) - 1;
+        int wall_top = (int)((wall_height - cam_height) * (dtp / distance) 
+                       * (double)v_canvas.height + (double)v_canvas.height/2) - 1;
         // printf("wall_top: %lf, %d\n", (wall_height - cam_height) * (viewport_dist / distance), wall_top);
         // int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) + viewport_height/2);
-        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (dtp / distance) * (double)v_canvas.height) + 1;
+        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (dtp / distance) 
+                       * (double)v_canvas.height) + 1;
 
         wall_top = v_canvas.height - wall_top;
         wall_bot = v_canvas.height - wall_bot;
