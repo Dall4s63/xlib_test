@@ -105,22 +105,6 @@ int render_setup(int v_width, int v_height) {
 // 
 // static MapRoom temp_room;
 
-RGBAColor floor_color_at(DoubleVec2 a) {
-    RGBAColor out;
-    if ((((int)a.x + (int)a.y) % 2) == 0) {
-        out.rgba[0] = 0x10;
-        out.rgba[1] = 0xc0;
-        out.rgba[2] = 0x10;
-        out.rgba[3] = 0xff;
-    } else {
-        out.rgba[0] = 0x10;
-        out.rgba[1] = 0xa0;
-        out.rgba[2] = 0x10;
-        out.rgba[3] = 0xff;
-    }
-    return out;
-}
-
 void render_run(Image canvas) {
 
     // TODO walls/rooms should determine the height of the walls
@@ -164,10 +148,10 @@ void render_run(Image canvas) {
         double viewport_height = viewport_width / aspect;
         double v_from_center = ((double)col - (double)v_canvas.width / 2.0) / (double)v_canvas.width * viewport_width;
         double dtp = sqrt(viewport_dist * viewport_dist + v_from_center * v_from_center);
-        int wall_top = (int)((wall_height - cam_height) * (dtp / distance) * (double)v_canvas.height + (double)v_canvas.height/2);
+        int wall_top = (int)((wall_height - cam_height) * (dtp / distance) * (double)v_canvas.height + (double)v_canvas.height/2) - 1;
         // printf("wall_top: %lf, %d\n", (wall_height - cam_height) * (viewport_dist / distance), wall_top);
         // int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) + viewport_height/2);
-        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (dtp / distance) * (double)v_canvas.height);
+        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (dtp / distance) * (double)v_canvas.height) + 1;
 
         wall_top = v_canvas.height - wall_top;
         wall_bot = v_canvas.height - wall_bot;
@@ -176,7 +160,7 @@ void render_run(Image canvas) {
         
         if (distance < dtp) { 
             wall_top = v_canvas.height / 2 + 1;
-            wall_bot = v_canvas.height / 2 + 1;
+            wall_bot = v_canvas.height / 2 - 1;
         }
 
         for (int row = 0; row < v_canvas.height; ++row) {
@@ -199,20 +183,11 @@ void render_run(Image canvas) {
                 double dist = dtp * viewport_height * cam_height / row_height;
                 spot.x = cam_pos.x + ray.dir.x * dist;
                 spot.y = cam_pos.y + ray.dir.y * dist;
-                RGBAColor c;
-                if (dist < 10.0) {
-                    c = floor_color_at(spot);
-                } else {
-                    c.rgba[0] = 0x10;
-                    c.rgba[1] = 0xa0;
-                    c.rgba[2] = 0x10;
-                    c.rgba[3] = 0xff;
-                }
                 // printf("spot.x: %lf, spot.y: %lf\n", row_height, dtp);
-                v_canvas.data[i]   = c.rgba[3];
-                v_canvas.data[i+1] = c.rgba[2];
-                v_canvas.data[i+2] = c.rgba[1];
-                v_canvas.data[i+3] = c.rgba[0];
+                v_canvas.data[i+0] = 0x60;
+                v_canvas.data[i+1] = 0x20;
+                v_canvas.data[i+2] = 0x40;
+                v_canvas.data[i+3] = 0xff;
                 continue;
             }
 

@@ -10,10 +10,12 @@
 #include "display.h"
 #include "double_vec2.h"
 
-typedef union _rgba_color {
-    uint32_t value;
-    char     rgba[4];
-} RGBAColor;
+typedef struct _rgba_fcolor {
+    float r;
+    float g;
+    float b;
+    float a;
+} FColor;
 
 typedef struct _map_wall {
     DoubleVec2 a;
