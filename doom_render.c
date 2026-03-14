@@ -27,6 +27,9 @@ static double cam_height = 1.8;
 
 static MapRoom temp_room;
 
+// TODO debug stuff
+Image debug_c;
+
 int render_setup(int v_width, int v_height) {
     virtual_width = v_width;
     virtual_height = v_height;
@@ -40,6 +43,11 @@ int render_setup(int v_width, int v_height) {
     if (zbuffer == NULL) {
         return 1;
     }
+
+    // TODO debug stuff
+    debug_c.width = v_width;
+    debug_c.height = v_height;
+    debug_c.data = malloc(sizeof(char) * 4 * v_width * v_height);
 
     temp_room.walls_buf_len = 12;
     temp_room.walls_len = 12;
@@ -96,7 +104,33 @@ int render_setup(int v_width, int v_height) {
     return 0;
 }
 
+static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
+    // printf("drawing line from (%lf, %lf) to (%lf, %lf)\n",
+    //     a.x, a.y, b.x, b.y);
+    double dx = b.x - a.x;
+    double dy = b.y - a.y;
+    double l_diff = abs((abs(dx) > abs(dy)) ? dx : dy);
+    dx = dx / l_diff;
+    dy = dy / l_diff;
+    bool axl = a.x < b.x;
+    bool ayl = a.y < b.y;
+    for (; (axl ? a.x <= b.x : a.x >= b.x) && (ayl ? a.y <= b.y : a.y >= b.y); a.x += dx, a.y += dy) {
+        // printf("%lf, %lf\n", a.x, a.y);
+        int x = (int)a.x;
+        int y = (int)a.y;
+        if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) {
+            continue;
+        }
+        int i = (x * canvas.width + y) * 4;
+        canvas.data[i + 0] = c[0];
+        canvas.data[i + 1] = c[1];
+        canvas.data[i + 2] = c[2];
+        canvas.data[i + 3] = c[3];
+    }
+}
+
 void render_run(Image canvas) {
+    memset(debug_c.data, 0, debug_c.width * debug_c.height * 4);
 
     // TODO walls/rooms should determine the height of the walls
     double wall_height = 10.0;
@@ -199,6 +233,31 @@ void render_run(Image canvas) {
         }
     }
 
+    // TODO debug stuff
+    // printf("\n\nNEW THING\n");
+    double x_off = 30.0;
+    double y_off = 30.0;
+    for (int i = 0; i < temp_room.walls_len; ++i) {
+        DoubleVec2 a = (DoubleVec2) {
+            .x = temp_room.walls[i].a.x + x_off,
+            .y = temp_room.walls[i].a.y + y_off,
+        };
+        DoubleVec2 b = (DoubleVec2) {
+            .x = temp_room.walls[i].b.x + x_off,
+            .y = temp_room.walls[i].b.y + y_off,
+        };
+        char color[4] = {0xff, 0xff, 0xff, 0xff};
+        draw_line(debug_c, a, b, color);
+    }
+    {
+    int index = ((int)(cam_pos.x + x_off) * v_canvas.width + (int)(cam_pos.y + y_off)) * 4;
+    printf("index: %d\n", index);
+    debug_c.data[index + 0] = 0xff;
+    debug_c.data[index + 1] = 0xff;
+    debug_c.data[index + 2] = 0xff;
+    debug_c.data[index + 3] = 0xff;
+    }
+
     for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
         int row = i / 4 / canvas.width;
         int col = i / 4 - row * canvas.width;
@@ -209,6 +268,23 @@ void render_run(Image canvas) {
         canvas.data[i + 1] = v_canvas.data[v_index + 1];
         canvas.data[i + 2] = v_canvas.data[v_index + 2];
         canvas.data[i + 3] = v_canvas.data[v_index + 3];
+    }
+
+    // TODO debug
+    for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
+        // printf("looping\n");
+        int row = i / 4 / canvas.width;
+        int col = i / 4 - row * canvas.width;
+        int v_row = row * debug_c.height / canvas.height;
+        int v_col = col * debug_c.width / canvas.width;
+        int v_index = (v_row * debug_c.width + v_col) * 4;
+        if (debug_c.data[v_index + 0] > 0) {
+            printf("this is running");
+            canvas.data[i + 0] = debug_c.data[v_index + 0];
+            canvas.data[i + 1] = debug_c.data[v_index + 1];
+            canvas.data[i + 2] = debug_c.data[v_index + 2];
+            canvas.data[i + 3] = debug_c.data[v_index + 3];
+        }
     }
 }
 
