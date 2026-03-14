@@ -8,7 +8,11 @@ double dot_product(DoubleVec2 a, DoubleVec2 b) {
     return a.x * b.x + a.y * b.y;
 }
 
-DoubleVec2 scalar_product(DoubleVec2 a, double x) {
+DoubleVec2 vec_add(DoubleVec2 a, DoubleVec2 b) {
+    return (DoubleVec2) { .x = a.x + b.x, .y = a.y + b.y };
+}
+
+DoubleVec2 vec_scalar_product(DoubleVec2 a, double x) {
     return (DoubleVec2) { .x = a.x * x, .y = a.y * x };
 }
 

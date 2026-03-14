@@ -10,7 +10,7 @@
 #include "keyboard.h"
 
 typedef struct _image {
-    char *data;
+    unsigned char *data;
     int width;
     int height;
 } Image;

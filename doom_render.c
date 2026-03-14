@@ -132,6 +132,11 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
 void render_run(Image canvas) {
     memset(debug_c.data, 0, debug_c.width * debug_c.height * 4);
 
+    // TODO debug stuff
+    double debug_xoff = 60.0;
+    double debug_yoff = 60.0;
+    double debug_sf = 3.0;
+
     // TODO walls/rooms should determine the height of the walls
     double wall_height = 10.0;
 
@@ -167,6 +172,19 @@ void render_run(Image canvas) {
                 }
             }
         }
+
+        // {
+        // unsigned char c[4] = {0x10, 0x50, 0x10, 0xff};
+        // DoubleVec2 a = (DoubleVec2) {
+        //     .x = (ray.origin.x + debug_xoff) * debug_sf,
+        //     .y = (ray.origin.y + debug_yoff) * debug_sf
+        // };
+        // DoubleVec2 b = (DoubleVec2) {
+        //     .x = (ray.origin.x + ray.dir.x * distance + debug_xoff) * debug_sf,
+        //     .y = (ray.origin.y + ray.dir.y * distance + debug_yoff) * debug_sf
+        // };
+        // draw_line(debug_c, a, b, c);
+        // }
 
         double aspect = (double)v_canvas.width / (double)v_canvas.height;
         double viewport_height = viewport_width / aspect;
@@ -204,12 +222,27 @@ void render_run(Image canvas) {
 
             if (row > wall_bot) {
                 // floor
-                double row_height = ((double)(row) + 0.5) / (double)v_canvas.height * viewport_height - viewport_height / 2.0;
+                double row_height = viewport_height * (((double)row + 0.5) / (double)v_canvas.height - 0.5);
+                // double row_height = ((double)(row) + 0.5) / (double)v_canvas.height - 0.5;
                 DoubleVec2 spot;
                 // TODO figure out why we need to multiply by viewport_height to make it look right
                 double dist = dtp * viewport_height * cam_height / row_height;
+                // double dist = dtp * cam_height / row_height;
+                // printf("%lf, %lf\n", dtp * viewport_height * cam_height / row_height, dtp * cam_height / row_height);
                 spot.x = cam_pos.x + ray.dir.x * dist;
                 spot.y = cam_pos.y + ray.dir.y * dist;
+                // TODO debug
+                {
+                int x = (int)((spot.x + debug_xoff) * debug_sf);
+                int y = (int)((spot.y + debug_yoff) * debug_sf);
+                if (x >= 0 && x < debug_c.width && y >= 0 && y <= debug_c.height) {
+                    int index = (x * debug_c.width + y) * 4;
+                    debug_c.data[index + 0] = 0x50;
+                    debug_c.data[index + 1] = 0x00;
+                    debug_c.data[index + 2] = 0x50;
+                    debug_c.data[index + 3] = 0xff;
+                }
+                }
                 // printf("spot.x: %lf, spot.y: %lf\n", row_height, dtp);
                 v_canvas.data[i+0] = 0x60;
                 v_canvas.data[i+1] = 0x20;
@@ -235,23 +268,20 @@ void render_run(Image canvas) {
 
     // TODO debug stuff
     // printf("\n\nNEW THING\n");
-    double x_off = 30.0;
-    double y_off = 30.0;
     for (int i = 0; i < temp_room.walls_len; ++i) {
         DoubleVec2 a = (DoubleVec2) {
-            .x = temp_room.walls[i].a.x + x_off,
-            .y = temp_room.walls[i].a.y + y_off,
+            .x = (temp_room.walls[i].a.x + debug_xoff) * debug_sf,
+            .y = (temp_room.walls[i].a.y + debug_yoff) * debug_sf,
         };
         DoubleVec2 b = (DoubleVec2) {
-            .x = temp_room.walls[i].b.x + x_off,
-            .y = temp_room.walls[i].b.y + y_off,
+            .x = (temp_room.walls[i].b.x + debug_xoff) * debug_sf,
+            .y = (temp_room.walls[i].b.y + debug_yoff) * debug_sf,
         };
         char color[4] = {0xff, 0xff, 0xff, 0xff};
         draw_line(debug_c, a, b, color);
     }
     {
-    int index = ((int)(cam_pos.x + x_off) * v_canvas.width + (int)(cam_pos.y + y_off)) * 4;
-    printf("index: %d\n", index);
+    int index = ((int)((cam_pos.x + debug_xoff) * debug_sf) * v_canvas.width + (int)((cam_pos.y + debug_yoff) * debug_sf)) * 4;
     debug_c.data[index + 0] = 0xff;
     debug_c.data[index + 1] = 0xff;
     debug_c.data[index + 2] = 0xff;
@@ -279,7 +309,6 @@ void render_run(Image canvas) {
         int v_col = col * debug_c.width / canvas.width;
         int v_index = (v_row * debug_c.width + v_col) * 4;
         if (debug_c.data[v_index + 0] > 0) {
-            printf("this is running");
             canvas.data[i + 0] = debug_c.data[v_index + 0];
             canvas.data[i + 1] = debug_c.data[v_index + 1];
             canvas.data[i + 2] = debug_c.data[v_index + 2];

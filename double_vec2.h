@@ -18,7 +18,8 @@ typedef struct _double_ray {
 } DoubleRay;
 
 double dot_product(DoubleVec2 a, DoubleVec2 b);
-DoubleVec2 scalar_product(DoubleVec2 a, double x);
+DoubleVec2 vec_add(DoubleVec2 a, DoubleVec2 b);
+DoubleVec2 vec_scalar_product(DoubleVec2 a, double x);
 DoubleVec2 vec_normalize(DoubleVec2 a);
 DoubleVec2 vec_rotate(DoubleVec2 a, double angle);
 bool double_ray_in_segment(DoubleRay ray, DoubleVec2 a, DoubleVec2 b, DoubleVec2 *ret);

@@ -77,6 +77,6 @@ void game_load() {
 
 void game_update(double dt) {
     DoubleVec2 vel_rot = vec_rotate(cam_vel, cam_angle);
-    cam_pos_add(scalar_product(vel_rot, dt));
+    cam_pos_add(vec_scalar_product(vel_rot, dt));
     cam_angle = cam_angle_add(cam_angle_vel * dt);
 }
