@@ -17,6 +17,13 @@ typedef struct _rgba_fcolor {
     float a;
 } FColor;
 
+typedef struct _camera {
+    DoubleVec2 pos;
+    double angle;
+    double fov;
+    double height;
+} Camera;
+
 typedef struct _map_wall {
     DoubleVec2 a;
     DoubleVec2 b;
@@ -28,6 +35,12 @@ typedef struct _map_room {
     int walls_buf_len;
     int walls_len;
 } MapRoom;
+
+typedef struct _map {
+    MapRoom *rooms;
+    int rooms_buf_len;
+    int rooms_len;
+} Map;
 
 int render_setup(int v_width, int v_height);
 void render_run(Image out_canvas);
