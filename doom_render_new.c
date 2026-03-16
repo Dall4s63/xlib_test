@@ -39,6 +39,14 @@ int render_setup(int v_width, int v_height) {
     return 0;
 }
 
+static void set_pixel(Image canvas, int row, int col, char c[4]) {
+    int i = (row * canvas.width + col) * 4;
+    canvas.data[i + 0] = c[0];
+    canvas.data[i + 1] = c[1];
+    canvas.data[i + 2] = c[2];
+    canvas.data[i + 3] = c[3];
+}
+
 static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
     // printf("drawing line from (%lf, %lf) to (%lf, %lf)\n",
     //     a.x, a.y, b.x, b.y);
@@ -94,6 +102,7 @@ void render_run(Image canvas) {
         // TODO find a suitably large number
         double distance = 100000.0;
         int wall_i = -1;
+        double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
             DoubleVec2 end_a = temp_room.walls[i].a;
@@ -105,19 +114,34 @@ void render_run(Image canvas) {
             }
             DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam.pos.x, .y = i_point.y - cam.pos.y };
             double d = sqrt(vec.x * vec.x + vec.y * vec.y);
-            if (d < distance) {
+            if (d < distance && d > flat_dtp) {
                 distance = d;
                 wall_i = i;
             }
         }
 
-        double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
         int wall_top;
         int wall_bot;
         {
         double wall_above_cam = temp_room.wall_height - cam.height;
         double wall_below_cam = cam.height;
         double swh = wall_above_cam / distance * dtp;
+        wall_top = (int) ((swh / vp_height + 0.5) * vc_height) - 1; 
+        double swh = wall_below_cam / distance * dtp;
+        wall_bot = (int) ((0.5 - swh / vp_height) * vc_height) + 1;
+        wall_top = virtual_canvas.height - wall_top;
+        wall_bot = virtual_canvas.height - wall_bot;
+        }
+
+        for (int row_i = 0; row_i < virtual_canvas.height; ++row_i) {
+            int i = (row_i * virtual_canvas.width + column_i) * 4;
+            double row = (double)row_i;
+
+            if (row_i <= wall_bot && row_i >= wall_top) {
+                // wall
+            }
+
+            // floor / ceiling
         }
     }
 }
