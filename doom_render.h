@@ -17,6 +17,15 @@ typedef struct _rgba_fcolor {
     float a;
 } FColor;
 
+typedef struct _sprite {
+    char *data;
+    int data_width;
+    int data_height;
+    FColor *colors;
+    int colors_len;
+    int colors_buf_len;
+}
+
 typedef struct _camera {
     DoubleVec2 pos;
     double angle;
@@ -27,6 +36,7 @@ typedef struct _camera {
 typedef struct _map_wall {
     DoubleVec2 a;
     DoubleVec2 b;
+    // TODO wall sprite stuff
 } MapWall;
 
 typedef struct _map_room {
@@ -34,6 +44,7 @@ typedef struct _map_room {
     MapWall *walls; 
     int walls_buf_len;
     int walls_len;
+    double wall_height;
 } MapRoom;
 
 typedef struct _map {

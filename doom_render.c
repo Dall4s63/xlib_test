@@ -222,12 +222,12 @@ void render_run(Image canvas) {
 
             if (row > wall_bot) {
                 // floor
-                double row_height = viewport_height * (((double)row + 0.5) / (double)v_canvas.height - 0.5);
-                // double row_height = ((double)(row) + 0.5) / (double)v_canvas.height - 0.5;
+                // double row_height = viewport_height * (((double)row + 0.5) / (double)v_canvas.height - 0.5);
+                double row_height = ((double)(row) + 0.5) / (double)v_canvas.height - 0.5;
                 DoubleVec2 spot;
                 // TODO figure out why we need to multiply by viewport_height to make it look right
-                double dist = dtp * viewport_height * cam_height / row_height;
-                // double dist = dtp * cam_height / row_height;
+                // double dist = dtp * viewport_height * cam_height / row_height;
+                double dist = dtp * cam_height / row_height;
                 // printf("%lf, %lf\n", dtp * viewport_height * cam_height / row_height, dtp * cam_height / row_height);
                 spot.x = cam_pos.x + ray.dir.x * dist;
                 spot.y = cam_pos.y + ray.dir.y * dist;
