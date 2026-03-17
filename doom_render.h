@@ -24,7 +24,7 @@ typedef struct _sprite {
     FColor *colors;
     int colors_len;
     int colors_buf_len;
-}
+} Sprite;
 
 typedef struct _camera {
     DoubleVec2 pos;

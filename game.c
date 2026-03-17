@@ -29,22 +29,22 @@ void key_press(KeyId id, unsigned int scancode, bool is_repeat) {
     }
     switch (id) {
     case KB_W:
-        cam_vel.y += 20.0;
+        cam_vel.y += 40.0;
         break;
     case KB_A:
-        cam_vel.x -= 20.0;
+        cam_vel.x -= 40.0;
         break;
     case KB_D: 
-        cam_vel.x += 20.0;
+        cam_vel.x += 40.0;
         break;
     case KB_S:
-        cam_vel.y -= 20.0;
+        cam_vel.y -= 40.0;
         break;
     case KB_Left:
-        cam_angle_vel += 7.0;
+        cam_angle_vel += 10.0;
         break;
     case KB_Right:
-        cam_angle_vel -= 7.0;
+        cam_angle_vel -= 10.0;
         break;
     }
 }
@@ -52,22 +52,22 @@ void key_press(KeyId id, unsigned int scancode, bool is_repeat) {
 void key_release(KeyId id, unsigned int scancode) {
     switch (id) {
     case KB_W:
-        cam_vel.y -= 20.0;
+        cam_vel.y -= 40.0;
         break;
     case KB_A:
-        cam_vel.x += 20.0;
+        cam_vel.x += 40.0;
         break;
     case KB_D: 
-        cam_vel.x -= 20.0;
+        cam_vel.x -= 40.0;
         break;
     case KB_S:
-        cam_vel.y += 20.0;
+        cam_vel.y += 40.0;
         break;
     case KB_Left:
-        cam_angle_vel -= 7.0;
+        cam_angle_vel -= 10.0;
         break;
     case KB_Right:
-        cam_angle_vel += 7.0;
+        cam_angle_vel += 10.0;
         break;
     }
 }

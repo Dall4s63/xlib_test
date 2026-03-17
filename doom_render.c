@@ -1,8 +1,3 @@
-/* I can't decide what to do, but this seems fun
- *
- * maybe can make a dungeon crawler
- */
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,43 +6,36 @@
 #include "double_vec2.h"
 #include "doom_render.h"
 
-static int virtual_width;
-static int virtual_height;
+static Image virtual_canvas;
 
-static Image v_canvas;
-static char *zbuffer;
+static double vp_dist = 0.25;
+// static double vp_width = 0.5;
 
-static double viewport_width = 0.5;
-
-static DoubleVec2 cam_pos = { .x = 0.0, .y = 0.0 };
-// static DoubleVec2 cam_dir = { .x = 1.0, .y = 0.0 };
-static double cam_angle = 0.0;
-static double fov = 90.0;
-static double cam_height = 1.8;
+static Camera cam = (Camera) { 
+    (DoubleVec2) { .x = 0.0, .y = 0.0 },
+    0.0,
+    100.0,
+    1.8
+};
 
 static MapRoom temp_room;
 
-// TODO debug stuff
-Image debug_c;
+Image debug_canvas;
 
 int render_setup(int v_width, int v_height) {
-    virtual_width = v_width;
-    virtual_height = v_height;
-    v_canvas.width = v_width;
-    v_canvas.height = v_height;
-    v_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
-    if (v_canvas.data == NULL) {
-        return 1;
-    }
-    zbuffer = malloc(sizeof(int) * v_width * v_height);
-    if (zbuffer == NULL) {
+    virtual_canvas.width = v_width;
+    virtual_canvas.height = v_height;
+    virtual_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
+    if (virtual_canvas.data == NULL) {
         return 1;
     }
 
     // TODO debug stuff
-    debug_c.width = v_width;
-    debug_c.height = v_height;
-    debug_c.data = malloc(sizeof(char) * 4 * v_width * v_height);
+    debug_canvas.width = v_width;
+    debug_canvas.height = v_height;
+    debug_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
+
+    // TODO initialise the room
 
     temp_room.walls_buf_len = 12;
     temp_room.walls_len = 12;
@@ -100,8 +88,17 @@ int render_setup(int v_width, int v_height) {
         .a = (DoubleVec2){ .x = - 5.0, .y = - 5.0 },
         .b = (DoubleVec2){ .x = -10.0, .y = - 5.0 }
     };
+    temp_room.wall_height = 4.0;
 
     return 0;
+}
+
+static void set_pixel(Image canvas, int row, int col, char c[4]) {
+    int i = (row * canvas.width + col) * 4;
+    canvas.data[i + 0] = c[0];
+    canvas.data[i + 1] = c[1];
+    canvas.data[i + 2] = c[2];
+    canvas.data[i + 3] = c[3];
 }
 
 static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
@@ -130,201 +127,136 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
 }
 
 void render_run(Image canvas) {
-    memset(debug_c.data, 0, debug_c.width * debug_c.height * 4);
+    memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
 
     // TODO debug stuff
     double debug_xoff = 60.0;
     double debug_yoff = 60.0;
     double debug_sf = 3.0;
 
-    // TODO walls/rooms should determine the height of the walls
-    double wall_height = 10.0;
-
-    for (int col = 0; col < v_canvas.width; ++col) {
-
-        // TODO for now just assume the fov is 90
-        double viewport_dist = viewport_width / 2;
+    // TODO fix this
+    // double vp_dist = (vp_width/2) / tan(cam.fov * M_PI / (180.0 * 2.0));
+    // printf("%lf\n", vp_dist);
+    double vp_width = tan(cam.fov * M_PI / (180.0 * 2.0)) * vp_dist * 2;
+    double vc_width = (double) virtual_canvas.width;
+    double vc_height = (double) virtual_canvas.height;
+    double vp_height;
+    {
+    double aspect_ratio = vc_height / vc_width;
+    vp_height = vp_width * aspect_ratio;
+    }
+    
+    for (int column_i = 0; column_i < virtual_canvas.width; ++column_i) {
+        double col = (double)column_i;
 
         DoubleRay ray;
-        ray.dir.x = ((double)col + 0.5) / (double)v_canvas.width * viewport_width - viewport_width / 2.0;
-        ray.dir.y = viewport_dist; 
+        double vp_dwidth = (col / vc_width - 0.5) * vp_width;
+        ray.dir.x = vp_dwidth;
+        ray.dir.y = vp_dist;
         ray.dir = vec_normalize(ray.dir);
-        ray.dir = vec_rotate(ray.dir, cam_angle);
-        ray.origin = cam_pos;
+        ray.dir = vec_rotate(ray.dir, cam.angle);
+        ray.origin = cam.pos;
         // TODO find a suitably large number
         double distance = 100000.0;
         int wall_i = -1;
+        // double flat_dtp = vp_dist;
+        double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
             DoubleVec2 end_a = temp_room.walls[i].a;
             DoubleVec2 end_b = temp_room.walls[i].b;
             DoubleVec2 i_point;
             bool res = double_ray_in_segment(ray, end_a, end_b, &i_point);
-            if (res) {
-                // printf("i_point: (%lf, %lf)\n", i_point.x, i_point.y);
-                DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam_pos.x, .y = i_point.y - cam_pos.y };
-                // TODO this also needs to be fixed
-                // double d = i_point.y - cam_pos.y;
-                double d = sqrt(vec.x * vec.x + vec.y * vec.y);
-                if (d < distance) {
-                    distance = d;
-                    wall_i = i;
-                }
+            if (!res) {
+                continue;
+            }
+            DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam.pos.x, .y = i_point.y - cam.pos.y };
+            double d = sqrt(vec.x * vec.x + vec.y * vec.y);
+            if (d < distance && d > flat_dtp) {
+                distance = d;
+                wall_i = i;
             }
         }
 
-        // {
-        // unsigned char c[4] = {0x10, 0x50, 0x10, 0xff};
-        // DoubleVec2 a = (DoubleVec2) {
-        //     .x = (ray.origin.x + debug_xoff) * debug_sf,
-        //     .y = (ray.origin.y + debug_yoff) * debug_sf
-        // };
-        // DoubleVec2 b = (DoubleVec2) {
-        //     .x = (ray.origin.x + ray.dir.x * distance + debug_xoff) * debug_sf,
-        //     .y = (ray.origin.y + ray.dir.y * distance + debug_yoff) * debug_sf
-        // };
-        // draw_line(debug_c, a, b, c);
-        // }
-
-        double aspect = (double)v_canvas.width / (double)v_canvas.height;
-        double viewport_height = viewport_width / aspect;
-        double v_from_center = ((double)col - (double)v_canvas.width / 2.0) / (double)v_canvas.width 
-                               * viewport_width;
-        double dtp = sqrt(viewport_dist * viewport_dist + v_from_center * v_from_center);
-        int wall_top = (int)((wall_height - cam_height) * (dtp / distance) 
-                       * (double)v_canvas.height + (double)v_canvas.height/2) - 1;
-        // printf("wall_top: %lf, %d\n", (wall_height - cam_height) * (viewport_dist / distance), wall_top);
-        // int wall_top = (int)((wall_height - cam_height) * (viewport_dist / distance) + viewport_height/2);
-        int wall_bot = (int)((double)v_canvas.height/2 - cam_height * (dtp / distance) 
-                       * (double)v_canvas.height) + 1;
-
-        wall_top = v_canvas.height - wall_top;
-        wall_bot = v_canvas.height - wall_bot;
-        // printf("wall_top: %d\n", wall_top);
-        // printf("wall_bot: %d\n", wall_bot);
-        
-        if (distance < dtp) { 
-            wall_top = v_canvas.height / 2 + 1;
-            wall_bot = v_canvas.height / 2 - 1;
+        int wall_top;
+        int wall_bot;
+        {
+        double wall_above_cam = temp_room.wall_height - cam.height;
+        double wall_below_cam = cam.height;
+        double swh = wall_above_cam / distance * flat_dtp;
+        // wall_top = (int)((swh / vp_height + 0.5) * vc_height) - 1; 
+        wall_top = (int)((0.5 - swh / vp_height) * vc_height) + 1; 
+        // printf("%lf\n", swh/vp_height);
+        // wall_top = (int)((swh / vp_height) * vc_height) - 1; 
+        swh = wall_below_cam / distance * flat_dtp;
+        // printf("%lf\n", swh/vp_height);
+        wall_bot = (int)((0.5 + swh / vp_height) * vc_height) - 1;
+        // wall_bot = (int)((swh / vp_height) * vc_height) + 1;
+        // printf("%d, %d\n", wall_top, wall_bot);
+        // wall_top = virtual_canvas.height - wall_top;
+        // wall_bot = virtual_canvas.height - wall_bot;
         }
 
-        for (int row = 0; row < v_canvas.height; ++row) {
-            int i = (row * v_canvas.width + col) * 4;
+        for (int row_i = 0; row_i < virtual_canvas.height; ++row_i) {
+            // int i = (row_i * virtual_canvas.width + column_i) * 4;
+            double row = (double)row_i;
+            char c[4];
 
-            if (row < wall_top) {
-                // ceiling
-                v_canvas.data[i]   = 0x10;
-                v_canvas.data[i+1] = 0x10;
-                v_canvas.data[i+2] = 0x80;
-                v_canvas.data[i+3] = 0xff;
-                continue;
-            }
-
-            if (row > wall_bot) {
-                // floor
-                // double row_height = viewport_height * (((double)row + 0.5) / (double)v_canvas.height - 0.5);
-                double row_height = ((double)(row) + 0.5) / (double)v_canvas.height - 0.5;
-                DoubleVec2 spot;
-                // TODO figure out why we need to multiply by viewport_height to make it look right
-                // double dist = dtp * viewport_height * cam_height / row_height;
-                double dist = dtp * cam_height / row_height;
-                // printf("%lf, %lf\n", dtp * viewport_height * cam_height / row_height, dtp * cam_height / row_height);
-                spot.x = cam_pos.x + ray.dir.x * dist;
-                spot.y = cam_pos.y + ray.dir.y * dist;
-                // TODO debug
-                {
-                int x = (int)((spot.x + debug_xoff) * debug_sf);
-                int y = (int)((spot.y + debug_yoff) * debug_sf);
-                if (x >= 0 && x < debug_c.width && y >= 0 && y <= debug_c.height) {
-                    int index = (x * debug_c.width + y) * 4;
-                    debug_c.data[index + 0] = 0x50;
-                    debug_c.data[index + 1] = 0x00;
-                    debug_c.data[index + 2] = 0x50;
-                    debug_c.data[index + 3] = 0xff;
+            if (row_i <= wall_bot && row_i >= wall_top) {
+                // printf("wall\n");
+                // wall
+                if (wall_i % 2) {
+                    c[0] = 0x30;
+                    c[1] = 0x50;
+                    c[2] = 0x30;
+                    c[3] = 0xff;
+                } else {
+                    c[0] = 0x25;
+                    c[1] = 0x40;
+                    c[2] = 0x25;
+                    c[3] = 0xff;
                 }
-                }
-                // printf("spot.x: %lf, spot.y: %lf\n", row_height, dtp);
-                v_canvas.data[i+0] = 0x60;
-                v_canvas.data[i+1] = 0x20;
-                v_canvas.data[i+2] = 0x40;
-                v_canvas.data[i+3] = 0xff;
-                continue;
-            }
-
-            // wall
-            if (wall_i % 2) {
-                v_canvas.data[i]   = 0x10;
-                v_canvas.data[i+1] = 0xc0;
-                v_canvas.data[i+2] = 0x10;
-                v_canvas.data[i+3] = 0xff;
             } else {
-                v_canvas.data[i]   = 0x10;
-                v_canvas.data[i+1] = 0x90;
-                v_canvas.data[i+2] = 0x10;
-                v_canvas.data[i+3] = 0xff;
+                // floor / ceiling
+                if (row_i <= virtual_canvas.height/2) {
+                    // ceiling
+                    c[0] = 0x40;
+                    c[1] = 0x30;
+                    c[2] = 0x25;
+                    c[3] = 0xff;
+                } else {
+                    // floor
+                    c[0] = 0x25;
+                    c[1] = 0x30;
+                    c[2] = 0x40;
+                    c[3] = 0xff;
+                }
             }
+            set_pixel(virtual_canvas, row_i, column_i, c);
         }
-    }
-
-    // TODO debug stuff
-    // printf("\n\nNEW THING\n");
-    for (int i = 0; i < temp_room.walls_len; ++i) {
-        DoubleVec2 a = (DoubleVec2) {
-            .x = (temp_room.walls[i].a.x + debug_xoff) * debug_sf,
-            .y = (temp_room.walls[i].a.y + debug_yoff) * debug_sf,
-        };
-        DoubleVec2 b = (DoubleVec2) {
-            .x = (temp_room.walls[i].b.x + debug_xoff) * debug_sf,
-            .y = (temp_room.walls[i].b.y + debug_yoff) * debug_sf,
-        };
-        char color[4] = {0xff, 0xff, 0xff, 0xff};
-        draw_line(debug_c, a, b, color);
-    }
-    {
-    int index = ((int)((cam_pos.x + debug_xoff) * debug_sf) * v_canvas.width + (int)((cam_pos.y + debug_yoff) * debug_sf)) * 4;
-    debug_c.data[index + 0] = 0xff;
-    debug_c.data[index + 1] = 0xff;
-    debug_c.data[index + 2] = 0xff;
-    debug_c.data[index + 3] = 0xff;
     }
 
     for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
         int row = i / 4 / canvas.width;
         int col = i / 4 - row * canvas.width;
-        int v_row = row * v_canvas.height / canvas.height;
-        int v_col = col * v_canvas.width / canvas.width;
-        int v_index = (v_row * v_canvas.width + v_col) * 4;
-        canvas.data[i + 0] = v_canvas.data[v_index + 0];
-        canvas.data[i + 1] = v_canvas.data[v_index + 1];
-        canvas.data[i + 2] = v_canvas.data[v_index + 2];
-        canvas.data[i + 3] = v_canvas.data[v_index + 3];
-    }
-
-    // TODO debug
-    for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
-        // printf("looping\n");
-        int row = i / 4 / canvas.width;
-        int col = i / 4 - row * canvas.width;
-        int v_row = row * debug_c.height / canvas.height;
-        int v_col = col * debug_c.width / canvas.width;
-        int v_index = (v_row * debug_c.width + v_col) * 4;
-        if (debug_c.data[v_index + 0] > 0) {
-            canvas.data[i + 0] = debug_c.data[v_index + 0];
-            canvas.data[i + 1] = debug_c.data[v_index + 1];
-            canvas.data[i + 2] = debug_c.data[v_index + 2];
-            canvas.data[i + 3] = debug_c.data[v_index + 3];
-        }
+        int v_row = row * virtual_canvas.height / canvas.height;
+        int v_col = col * virtual_canvas.width / canvas.width;
+        int v_index = (v_row * virtual_canvas.width + v_col) * 4;
+        canvas.data[i + 0] = virtual_canvas.data[v_index + 0];
+        canvas.data[i + 1] = virtual_canvas.data[v_index + 1];
+        canvas.data[i + 2] = virtual_canvas.data[v_index + 2];
+        canvas.data[i + 3] = virtual_canvas.data[v_index + 3];
     }
 }
 
 DoubleVec2 cam_pos_add(DoubleVec2 v) {
     return (DoubleVec2) {
-        .x = cam_pos.x += v.x,
-        .y = cam_pos.y += v.y,
+        .x = cam.pos.x += v.x,
+        .y = cam.pos.y += v.y,
     };
 }
 
 double cam_angle_add(double a) {
-    return cam_angle += a;
+    return cam.angle += a;
 }
 
