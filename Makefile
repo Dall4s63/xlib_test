@@ -5,7 +5,7 @@ SHELL = /bin/zsh
 
 sources = main.c x_display.c keyboard.c game.c double_vec2.c doom_render.c
 
-objects = $(patsubst %.c,%.o,$(sources))
+objects = $(patsubst %.c,bin/%.o,$(sources))
 
 depends = $(patsubst %.c,%.d,$(sources))
 
@@ -16,7 +16,7 @@ all: $(objects)
 
 -include $(depends)
 
-%.o: %.c Makefile
+bin/%.o: %.c Makefile
 	$(CC) $(CFLAGS) -MMD -MP --debug -c $< -o $@
 
 # 

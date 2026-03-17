@@ -10,22 +10,6 @@
 #include "display.h"
 #include "double_vec2.h"
 
-typedef struct _rgba_fcolor {
-    float r;
-    float g;
-    float b;
-    float a;
-} FColor;
-
-typedef struct _sprite {
-    char *data;
-    int data_width;
-    int data_height;
-    FColor *colors;
-    int colors_len;
-    int colors_buf_len;
-} Sprite;
-
 typedef struct _camera {
     DoubleVec2 pos;
     double angle;
@@ -36,15 +20,17 @@ typedef struct _camera {
 typedef struct _map_wall {
     DoubleVec2 a;
     DoubleVec2 b;
+    int spr;
     // TODO wall sprite stuff
 } MapWall;
 
 typedef struct _map_room {
-    // TODO include information about doors and stuff
     MapWall *walls; 
     int walls_buf_len;
     int walls_len;
     double wall_height;
+    // TODO lights information.
+    // TODO link to other rooms?
 } MapRoom;
 
 typedef struct _map {
