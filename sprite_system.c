@@ -58,7 +58,7 @@ int qoi_load(char *fname, Sprite *ret) {
     fseek(file, 0, SEEK_END);
     long len = ftell(file);
     rewind(file);
-    char *buf = malloc(len);
+    unsigned char *buf = malloc(len);
     size_t res = fread(buf, 1, len, file);
     if (res != len) {
         printf("didn't read the right number of bytes\n");
@@ -83,6 +83,40 @@ int qoi_load(char *fname, Sprite *ret) {
     uint32_t width = header->width;
     uint32_t height = header->height;
     uint8_t channels = header->channels;
+
+    ret->data_width = width;
+    ret->data_height = height;
+    ret->data = malloc(sizeof(*(ret->data)) * width * height);
+
+    int num_0 = 0;                    
+
+    unsigned char *cur = buf;
+
+    while (*(uint64_t*)cur != 1) {
+        if (*cur == 0xfe) {
+            // OP RGB
+            continue;
+        } else if (*cur == 0xff) {
+            // OP RGBA
+            continue;
+        }
+        switch (*cur & 0xc0) {
+        case 0x00:
+            // OP INDEX
+            break;
+        case 0x40:
+            // OP DIFF
+            break;
+        case 0x80:
+            // OP LUMA
+            break;
+        case 0xc0:
+            // OP RUN
+            break;
+        default;
+            this should never occur
+        }
+    }
 
     free(buf);
     return 0;
