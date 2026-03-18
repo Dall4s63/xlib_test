@@ -2,9 +2,9 @@
 #define HASH_STR_INT_H
 
 typedef struct _stoi_hash_unit {
-    char         *string;
-    int           v;
-    STOIHashUnit *next;
+    char                   *string;
+    int                     v;
+    struct _stoi_hash_unit *next;
 } STOIHashUnit;
 
 typedef struct _stoi_hash_map {
