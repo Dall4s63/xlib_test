@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 #include "sprite_system.h"
 
 #define INIT_LEN 60
@@ -36,6 +38,54 @@ static void sprite_initialize() {
     sprites_i_to_id_blen = INIT_LEN;
     sprites_id_to_ref = malloc(sizeof(int) * INIT_LEN);
     sprites_id_to_ref_blen = INIT_LEN;
+}
+
+struct qoi_header {
+    char        magic[4];
+    uint32_t    width;
+    uint32_t    height;
+    uint8_t     channels;
+    uint8_t     colorspace;
+};
+
+int qoi_load(char *fname, Sprite *ret) {
+    // TODO revisit this for the windows port
+    FILE *file = fopen(fname, "rb");
+    if (file == NULL) {
+        printf("failed to open file\n");
+        return 1;
+    }
+    fseek(file, 0, SEEK_END);
+    long len = ftell(file);
+    rewind(file);
+    char *buf = malloc(len);
+    size_t res = fread(buf, 1, len, file);
+    if (res != len) {
+        printf("didn't read the right number of bytes\n");
+        return 1;
+    }
+    fclose(file);
+
+    unsigned char prev_r = 0;
+    unsigned char prev_g = 0;
+    unsigned char prev_b = 0;
+    unsigned char prev_a = 255;
+
+    unsigned char prevs[64 * 4];
+    memset(prevs, 0, sizeof(prevs));
+
+    if (buf[0] != 'q' || buf[1] != 'o' || buf[2] != 'i' || buf[3] != 'f') {
+        printf("wrong image format\n");
+        return 0;
+    }
+
+    struct qoi_header *header = (struct qoi_header *) buf;
+    uint32_t width = header->width;
+    uint32_t height = header->height;
+    uint8_t channels = header->channels;
+
+    free(buf);
+    return 0;
 }
 
 int sprite_new(char *filename) {
