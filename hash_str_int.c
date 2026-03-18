@@ -90,7 +90,9 @@ bool stoi_hash_put(STOIHashMap m, char *s, int v) {
     }
     STOIHashUnit *new = malloc(sizeof(STOIHashUnit));
     prev->next = new;
-    new->string = s;
+    int len = strlen(s) + 1;
+    new->string = malloc(sizeof(char) * len);
+    strcpy(new->string, s);
     new->v = v;
     new->next = NULL;
     return false;
