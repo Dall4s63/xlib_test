@@ -233,17 +233,28 @@ void render_run(Image canvas) {
                 // printf("wall\n");
                 // wall
                 DoubleVec2 spot;
-                if (wall_i % 2) {
-                    c[0] = 0x30;
-                    c[1] = 0x50;
-                    c[2] = 0x30;
-                    c[3] = 0xff;
-                } else {
-                    c[0] = 0x25;
-                    c[1] = 0x40;
-                    c[2] = 0x25;
-                    c[3] = 0xff;
-                }
+                double dv = row / vc_height * vp_height;
+                double wall_ydist = dv / flat_dtp * distance;
+                double _;
+                double samplex = modf(wall_xdist, &_);
+                double sampley = modf(wall_ydist, &_);
+                FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+                // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+                c[0] = (unsigned char)(c_sample.r * 255);
+                c[1] = (unsigned char)(c_sample.g * 255);
+                c[2] = (unsigned char)(c_sample.b * 255);
+                c[3] = (unsigned char)(c_sample.a * 255);
+                // if (wall_i % 2) {
+                //     c[0] = 0x30;
+                //     c[1] = 0x50;
+                //     c[2] = 0x30;
+                //     c[3] = 0xff;
+                // } else {
+                //     c[0] = 0x25;
+                //     c[1] = 0x40;
+                //     c[2] = 0x25;
+                //     c[3] = 0xff;
+                // }
 
             } else {
                 // floor / ceiling
