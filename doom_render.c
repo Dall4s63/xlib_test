@@ -5,6 +5,7 @@
 
 #include "double_vec2.h"
 #include "doom_render.h"
+#include "sprite_system.h"
 
 static Image virtual_canvas;
 
@@ -22,7 +23,11 @@ static MapRoom temp_room;
 
 Image debug_canvas;
 
+static int spr_id;
+
 int render_setup(int v_width, int v_height) {
+    spr_id = sprite_new("assets/test.qoi");
+
     virtual_canvas.width = v_width;
     virtual_canvas.height = v_height;
     virtual_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
@@ -226,6 +231,9 @@ void render_run(Image canvas) {
                     c[3] = 0xff;
                 } else {
                     // floor
+                    DoubleVec2 spot;
+                    double dv = abs(row + 0.5 / vc_height - 0.5) * vp_height;
+                    // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
                     c[0] = 0x25;
                     c[1] = 0x30;
                     c[2] = 0x40;
@@ -234,6 +242,24 @@ void render_run(Image canvas) {
             }
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
+    }
+
+    {
+    int width = sprite_width(spr_id);
+    int height = sprite_height(spr_id);
+    for (int x = 0; x < width; ++x) {
+        for (int y = 0; y < height; ++y) {
+            FColor fc = sprite_sample(spr_id, x, y);
+            // printf("%f %f %f %f\n", fc.r, fc.g, fc.b, fc.a);
+            unsigned char c[4];
+            c[0] = (unsigned char) (fc.r * 255.0);
+            c[1] = (unsigned char) (fc.g * 255.0);
+            c[2] = (unsigned char) (fc.b * 255.0);
+            c[3] = (unsigned char) (fc.a * 255.0);
+            // printf("%x%x%x%x\n", c[0], c[1], c[2], c[3]);
+            set_pixel(virtual_canvas, y + 100, x + 100, c);
+        }
+    }
     }
 
     for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {

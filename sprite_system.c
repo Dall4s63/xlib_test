@@ -1,17 +1,27 @@
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "sprite_system.h"
+#include "hash_str_int.h"
 
 #define INIT_LEN 60
 
 typedef struct _sprite {
-    unsigned char *data;
-    int data_width;
-    int data_height;
-    FColor *colors;
-    int colors_len;
-    int colors_buf_len;
+    FColor *data;
+    int width;
+    int height;
 } Sprite;
+
+// typedef struct _sprite {
+//     unsigned char *data;
+//     int data_width;
+//     int data_height;
+//     FColor *colors;
+//     int colors_len;
+//     int colors_buf_len;
+// } Sprite;
 
 static Sprite *sprites = NULL;
 static int     sprites_blen = 0;
@@ -24,103 +34,26 @@ static int     sprites_i_to_id_blen = 0;
 static int     sprites_i_to_id_len = 0;
 static int    *sprites_id_to_ref = NULL;
 static int     sprites_id_to_ref_blen = 0;
-static int     sprites_id_to_ref_len = 0;
 
 static STOIHashMap name_map;
 
 static void sprite_initialize() {
+    printf("running initialize\n");
     name_map = stoi_hash_new();
     sprites = malloc(sizeof(Sprite) * INIT_LEN);
     sprites_blen = INIT_LEN;
     sprites_id_to_i = malloc(sizeof(int) * INIT_LEN);
+    memset(sprites_id_to_i, 0, sizeof(int) * INIT_LEN);
     sprites_id_to_i_blen = INIT_LEN;
     sprites_i_to_id = malloc(sizeof(int) * INIT_LEN);
+    memset(sprites_i_to_id, 0, sizeof(int) * INIT_LEN);
     sprites_i_to_id_blen = INIT_LEN;
     sprites_id_to_ref = malloc(sizeof(int) * INIT_LEN);
+    memset(sprites_id_to_ref, 0, sizeof(int) * INIT_LEN);
     sprites_id_to_ref_blen = INIT_LEN;
 }
 
-struct qoi_header {
-    char        magic[4];
-    uint32_t    width;
-    uint32_t    height;
-    uint8_t     channels;
-    uint8_t     colorspace;
-};
-
-int qoi_load(char *fname, Sprite *ret) {
-    // TODO revisit this for the windows port
-    FILE *file = fopen(fname, "rb");
-    if (file == NULL) {
-        printf("failed to open file\n");
-        return 1;
-    }
-    fseek(file, 0, SEEK_END);
-    long len = ftell(file);
-    rewind(file);
-    unsigned char *buf = malloc(len);
-    size_t res = fread(buf, 1, len, file);
-    if (res != len) {
-        printf("didn't read the right number of bytes\n");
-        return 1;
-    }
-    fclose(file);
-
-    unsigned char prev_r = 0;
-    unsigned char prev_g = 0;
-    unsigned char prev_b = 0;
-    unsigned char prev_a = 255;
-
-    unsigned char prevs[64 * 4];
-    memset(prevs, 0, sizeof(prevs));
-
-    if (buf[0] != 'q' || buf[1] != 'o' || buf[2] != 'i' || buf[3] != 'f') {
-        printf("wrong image format\n");
-        return 0;
-    }
-
-    struct qoi_header *header = (struct qoi_header *) buf;
-    uint32_t width = header->width;
-    uint32_t height = header->height;
-    uint8_t channels = header->channels;
-
-    ret->data_width = width;
-    ret->data_height = height;
-    ret->data = malloc(sizeof(*(ret->data)) * width * height);
-
-    int num_0 = 0;                    
-
-    unsigned char *cur = buf;
-
-    while (*(uint64_t*)cur != 1) {
-        if (*cur == 0xfe) {
-            // OP RGB
-            continue;
-        } else if (*cur == 0xff) {
-            // OP RGBA
-            continue;
-        }
-        switch (*cur & 0xc0) {
-        case 0x00:
-            // OP INDEX
-            break;
-        case 0x40:
-            // OP DIFF
-            break;
-        case 0x80:
-            // OP LUMA
-            break;
-        case 0xc0:
-            // OP RUN
-            break;
-        default;
-            this should never occur
-        }
-    }
-
-    free(buf);
-    return 0;
-}
+static int qoi_load(char *fname, Sprite *ret);
 
 int sprite_new(char *filename) {
     if (sprites == NULL) {
@@ -135,18 +68,217 @@ int sprite_new(char *filename) {
     int index = sprites_len;
     // TODO expand the buffers
     // load the image
+    res = qoi_load(filename, &(sprites[index]));
+    if (index >= sprites_i_to_id_len) {
+        sprites_i_to_id[index] = index;
+        sprites_id_to_i[index] = index;
+        sprites_i_to_id_len += 1;
+        sprites_id_to_i_len += 1;
+    }
+    id = sprites_i_to_id[index];
+    sprites_id_to_ref[id] += 1;
+    stoi_hash_put(name_map, filename, id);
+    return id;
 }
 
 void sprite_free(int id) {
 }
 
 int sprite_width(int id) {
+    int i = sprites_i_to_id[id];
+    return sprites[i].width;
 }
 
 int sprite_height(int id) {
+    int i = sprites_i_to_id[id];
+    return sprites[i].height;
 }
 
 FColor sprite_sample(int id, int x, int y) {
+    int i = sprites_i_to_id[id];
+    int width = sprites[i].width;
+    return sprites[i].data[y * width + x];
+}
+
+struct qoi_header {
+    char        magic[4];
+    uint32_t    width;
+    uint32_t    height;
+    uint8_t     channels;
+    uint8_t     colorspace;
+};
+
+static void qoi_insert(uint8_t *arr, uint8_t c[4]) {
+    unsigned int i = ((unsigned int)c[0] * 3 + (unsigned int)c[1] * 5 + (unsigned int)c[2] * 7 + (unsigned int)c[3] * 11) % 64;
+    arr[i*4 + 0] = c[0];
+    arr[i*4 + 1] = c[1];
+    arr[i*4 + 2] = c[2];
+    arr[i*4 + 3] = c[3];
+}
+
+static uint32_t betole(uint32_t v) {
+    uint32_t a = v&0x0000000ff;
+    uint32_t b = (v&0x0000ff00) >> 8;
+    uint32_t c = (v&0x00ff0000) >> 16;
+    uint32_t d = (v&0xff000000) >> 24;
+    return (a << 24) | (b << 16) | (c << 8) | (d);
+}
+
+static int qoi_load(char *fname, Sprite *ret) {
+    // TODO revisit this for the windows port
+    FILE *file = fopen(fname, "rb");
+    if (file == NULL) {
+        printf("failed to open file\n");
+        return 1;
+    }
+    fseek(file, 0, SEEK_END);
+    long len = ftell(file);
+    rewind(file);
+    uint8_t *buf = malloc(len);
+    size_t res = fread(buf, 1, len, file);
+    if (res != len) {
+        printf("didn't read the right number of bytes\n");
+        return 1;
+    }
+    fclose(file);
+
+    uint8_t prev[4];
+    prev[0] = 0;
+    prev[1] = 0;
+    prev[2] = 0;
+    prev[3] = 255;
+
+    uint8_t prevs[64 * 4];
+    memset(prevs, 0, sizeof(prevs));
+
+    if (buf[0] != 'q' || buf[1] != 'o' || buf[2] != 'i' || buf[3] != 'f') {
+        printf("wrong image format\n");
+        return 0;
+    }
+
+    struct qoi_header *header = (struct qoi_header *) buf;
+    // TODO FIX BIG ENDIAN TO LITTLE ENDIAN PROBLEM
+    uint32_t width = betole(header->width);
+    uint32_t height = betole(header->height);
+    // TODO work out how to use channels and color space
+    // uint8_t channels = header->channels;
+    // uint8_t colorspace = header->colorspace;
+    // printf("colorspace %u\n", colorspace);
+
+    ret->width = width;
+    ret->height = height;
+    ret->data = malloc(sizeof(FColor) * width * height);
+    if (ret->data == NULL) {
+        printf("failed to allocate\n");
+    }
+    int ret_i = 0;
+
+    unsigned char *cur = buf + 14;
+
+    while (!(cur[0] == 0 
+             && cur[1] == 0
+             && cur[2] == 0
+             && cur[3] == 0
+             && cur[4] == 0
+             && cur[5] == 0
+             && cur[6] == 0
+             && cur[7] == 1
+           )) {
+
+        if (*cur == 0xfe) {
+            // OP RGB
+            // printf("OP RGB\n");
+            prev[0] = *(cur + 1);
+            prev[1] = *(cur + 2);
+            prev[2] = *(cur + 3);
+            qoi_insert(prevs, prev);
+            // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
+            ret->data[ret_i++] = (FColor) {
+                .r = (float)prev[0] / 255.0,
+                .g = (float)prev[1] / 255.0,
+                .b = (float)prev[2] / 255.0,
+                .a = (float)prev[3] / 255.0
+            };
+            cur += 4;
+            continue;
+
+        } else if (*cur == 0xff) {
+            // OP RGBA
+            // printf("OP RGBA\n");
+            prev[0] = *(cur + 1);
+            prev[1] = *(cur + 2);
+            prev[2] = *(cur + 3);
+            prev[3] = *(cur + 4);
+            qoi_insert(prevs, prev);
+            // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
+            ret->data[ret_i++] = (FColor) {
+                .r = (float)prev[0] / 255.0,
+                .g = (float)prev[1] / 255.0,
+                .b = (float)prev[2] / 255.0,
+                .a = (float)prev[3] / 255.0
+            };
+            cur += 5;
+            continue;
+        }
+
+        switch (*cur & 0xc0) {
+        case 0x00:
+            // OP INDEX
+            // printf("OP INDEX\n");
+            {
+            unsigned int i = (*cur)&0x3f;
+            prev[0] = prevs[i * 4 + 0];
+            prev[1] = prevs[i * 4 + 1];
+            prev[2] = prevs[i * 4 + 2];
+            prev[3] = prevs[i * 4 + 3];
+            // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
+            ret->data[ret_i++] = (FColor) {
+                .r = (float)prev[0] / 255.0,
+                .g = (float)prev[1] / 255.0,
+                .b = (float)prev[2] / 255.0,
+                .a = (float)prev[3] / 255.0
+            };
+            }
+            cur += 1;
+            break;
+
+        case 0x40:
+            // OP DIFF
+            // printf("OP DIFF\n");
+            cur += 1;
+            break;
+
+        case 0x80:
+            // OP LUMA
+            // printf("OP LUMA\n");
+            cur += 2;
+            break;
+
+        case 0xc0:
+            // printf("OP RUN\n");
+            {
+            unsigned int len = ((*cur)&0x3f) + 1;
+            for (unsigned int i = 0; i < len; ++i) {
+                // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
+                ret->data[ret_i++] = (FColor) {
+                    .r = (float)prev[0] / 255.0,
+                    .g = (float)prev[1] / 255.0,
+                    .b = (float)prev[2] / 255.0,
+                    .a = (float)prev[3] / 255.0
+                };
+            }
+            }
+            cur += 1;
+            break;
+
+        default:
+            // this should never occur
+            printf("Found problematic byte %x\n", *cur);
+        }
+    }
+
+    free(buf);
+    return 0;
 }
 
 #undef INIT_LEN

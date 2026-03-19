@@ -15,6 +15,9 @@ STOIHashMap stoi_hash_new(void) {
         printf("failed allocation\n");
     }
     memset(out.values, 0, sizeof(STOIHashUnit) * HASH_BUF_LEN);
+    for (int i = 0; i < HASH_BUF_LEN; ++i) {
+        out.values[i].string == NULL;
+    }
     return out;
 }
 
@@ -34,9 +37,9 @@ void stoi_hash_free(STOIHashMap m) {
     free(m.values);
 }
 
-static int calc_hash(char *s) {
-    int v = 0;
-    int mul = 1;
+static unsigned int calc_hash(char *s) {
+    unsigned int v = 0;
+    unsigned int mul = 1;
     while (*s++ != '\0') {
         v += (int)*s * mul;
         mul *= HASH_PRIME;
@@ -45,7 +48,7 @@ static int calc_hash(char *s) {
 }
 
 bool stoi_hash_get(STOIHashMap m, char *s, int *ret) {
-    int i = calc_hash(s);
+    unsigned int i = calc_hash(s);
     if (m.values[i].string == NULL) {
         return false;
     }
