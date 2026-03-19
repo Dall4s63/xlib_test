@@ -68,6 +68,8 @@ static int setup_shm_image(Image c) {
     // if (new_data == NULL) { return 1; }
     cur_img = XShmCreateImage(display, visual, default_depth, ZPixmap,
         NULL, &shminfo, c.width, c.height);
+    shminfo.shmid = shmget(IPC_PRIVATE, 
+        cur_img->bytes_per_line * cur_img->height, IPC_CREAT|0777);
     return 0;
 }
 
