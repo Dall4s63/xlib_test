@@ -26,7 +26,7 @@ Image debug_canvas;
 static int spr_id;
 
 int render_setup(int v_width, int v_height) {
-    spr_id = sprite_new("assets/test2.qoi");
+    spr_id = sprite_new("assets/test3.qoi");
 
     virtual_canvas.width = v_width;
     virtual_canvas.height = v_height;
@@ -108,9 +108,10 @@ static void set_pixel_inv(Image canvas, int row, int col, char c[4]) {
 
 static void set_pixel(Image canvas, int row, int col, char c[4]) {
     int i = (row * canvas.width + col) * 4;
-    canvas.data[i + 0] = c[0];
+    // TODO lsb vs msb
+    canvas.data[i + 0] = c[2];
     canvas.data[i + 1] = c[1];
-    canvas.data[i + 2] = c[2];
+    canvas.data[i + 2] = c[0];
     canvas.data[i + 3] = c[3];
 }
 

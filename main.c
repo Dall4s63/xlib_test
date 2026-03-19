@@ -73,7 +73,7 @@ int main(void) {
     callbacks.window_resized = &engine_window_resized;
     callbacks.key_press = &engine_key_press;
     callbacks.key_release = &engine_key_release;
-    setup_window(800, 600, &render_canvas);
+    setup_window(win_width, win_height, &render_canvas);
     // render_setup(480, 270);
     render_setup(640, 360);
 

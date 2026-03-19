@@ -199,7 +199,7 @@ static int qoi_load(char *fname, Sprite *ret) {
 
         if (*cur == 0xfe) {
             // OP RGB
-            printf("OP RGB\n");
+            // printf("OP RGB\n");
             prev[0] = *(cur + 1);
             prev[1] = *(cur + 2);
             prev[2] = *(cur + 3);
@@ -216,7 +216,7 @@ static int qoi_load(char *fname, Sprite *ret) {
 
         } else if (*cur == 0xff) {
             // OP RGBA
-            printf("OP RGBA\n");
+            // printf("OP RGBA\n");
             prev[0] = *(cur + 1);
             prev[1] = *(cur + 2);
             prev[2] = *(cur + 3);
@@ -256,7 +256,8 @@ static int qoi_load(char *fname, Sprite *ret) {
 
         case 0x40:
             // OP DIFF
-            printf("OP DIFF\n");
+            // printf("OP DIFF\n");
+            {
             int dr = ((*cur & 0b00110000) >> 4) - 2;
             int dg = ((*cur & 0b00001100) >> 2) - 2;
             int db = (*cur & 0b00000011) - 2;
@@ -279,17 +280,44 @@ static int qoi_load(char *fname, Sprite *ret) {
                 .b = (float)prev[2] / 255.0,
                 .a = (float)prev[3] / 255.0
             };
+            }
             cur += 1;
             break;
 
         case 0x80:
             // OP LUMA
-            printf("OP LUMA\n");
+            // printf("OP LUMA\n");
+            {
+            int dg = (*cur & 0x3f) - 32;
+            int dr_dg = ((*(cur+1) & 0xf0) >> 4) - 8;
+            int db_dg = (*(cur+1) & 0x0f) - 8;
+            int dr = dr_dg + dg;
+            int db = db_dg + dg;
+            printf("dr: %d, dg: %d, db: %d\n", dr, dg, db);
+            int new_r = (int)prev[0] + dr;
+            if (new_r < 0) { new_r += 256; }
+            if (new_r > 255) { new_r -= 256; }
+            int new_g = (int)prev[1] + dg;
+            if (new_g < 0) { new_g += 256; }
+            if (new_g > 255) { new_g -= 256; }
+            int new_b = (int)prev[2] + db;
+            if (new_b < 0) { new_b += 256; }
+            if (new_b > 255) { new_b -= 256; }
+            prev[0] = (uint8_t)new_r;
+            prev[1] = (uint8_t)new_g;
+            prev[2] = (uint8_t)new_b;
+            ret->data[ret_i++] = (FColor) {
+                .r = (float)prev[0] / 255.0,
+                .g = (float)prev[1] / 255.0,
+                .b = (float)prev[2] / 255.0,
+                .a = (float)prev[3] / 255.0
+            };
+            }
             cur += 2;
             break;
 
         case 0xc0:
-            printf("OP RUN\n");
+            // printf("OP RUN\n");
             {
             unsigned int len = ((*cur)&0x3f) + 1;
             for (unsigned int i = 0; i < len; ++i) {
