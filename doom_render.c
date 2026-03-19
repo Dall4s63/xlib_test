@@ -26,7 +26,7 @@ Image debug_canvas;
 static int spr_id;
 
 int render_setup(int v_width, int v_height) {
-    spr_id = sprite_new("assets/test.qoi");
+    spr_id = sprite_new("assets/test2.qoi");
 
     virtual_canvas.width = v_width;
     virtual_canvas.height = v_height;
