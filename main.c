@@ -96,7 +96,7 @@ int main(void) {
         if (test_image.data == NULL) {
             temp_img();
         }
-        render_run(test_image);
+        // render_run(test_image);
         draw(test_image);
         // handle_events(&callbacks);
         clock_gettime(CLOCK_REALTIME, &end);

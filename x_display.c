@@ -13,6 +13,9 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 #include <X11/extensions/Xdbe.h>
+#include <sys/ipc.h>
+#include <sys/shm.h>
+#include <X11/extensions/XShm.h>
 
 #include "display.h"
 
@@ -37,6 +40,7 @@ static int byte_order;
 static bool bad_drawable = false;
 
 static XImage *cur_img = NULL;
+static XShmSegmentInfo shminfo;
 
 // static unsigned int *keys_down;
 // static int keys_down_len = 0;
@@ -59,7 +63,15 @@ int error_handler(Display *d, XErrorEvent *e) {
     return 0;
 }
 
-int setup_image(int width, int height) {
+static int setup_shm_image(Image c) {
+    // char *new_data = malloc(sizeof(char) * 4 * width * height);
+    // if (new_data == NULL) { return 1; }
+    cur_img = XShmCreateImage(display, visual, default_depth, ZPixmap,
+        NULL, &shminfo, c.width, c.height);
+    return 0;
+}
+
+static int setup_image(int width, int height) {
     char *new_data = malloc(sizeof(char) * 4 * width * height);
     if (new_data == NULL) { return 1; }
     cur_img = XCreateImage(display, visual, default_depth, ZPixmap,
@@ -129,32 +141,36 @@ int setup_window(int width, int height) {
     //     // TODO we have a problem
     // }
 
+    printf("shm extension %d\n", XShmQueryExtension(display));
+
     return 0;
 }
 
 int draw(Image in) {
     if (cur_img == NULL) {
-        setup_image(in.width, in.height);
+        // setup_image(in.width, in.height);
+        setup_shm_image(in);
     }
     if ((in.width != cur_img->width) || (in.height != cur_img->height)) {
         XDestroyImage(cur_img);
-        setup_image(in.width, in.height);
+        // setup_image(in.width, in.height);
+        setup_shm_image(in);
     }
-    if (byte_order == LSBFirst) {
-        for (int i = 0; i < 4 * in.width * in.height; i += 4) {
-            cur_img->data[i] = in.data[i+2];
-            cur_img->data[i+1] = in.data[i+1];
-            cur_img->data[i+2] = in.data[i];
-            cur_img->data[i+3] = 0;
-        }
-    } else {
-        for (int i = 0; i < 4 * in.width * in.height; i += 4) {
-            cur_img->data[i] = in.data[i];
-            cur_img->data[i+1] = in.data[i+1];
-            cur_img->data[i+2] = in.data[i+2];
-            cur_img->data[i+3] = 0;
-        }
-    }
+    // if (byte_order == LSBFirst) {
+    //     for (int i = 0; i < 4 * in.width * in.height; i += 4) {
+    //         cur_img->data[i] = in.data[i+2];
+    //         cur_img->data[i+1] = in.data[i+1];
+    //         cur_img->data[i+2] = in.data[i];
+    //         cur_img->data[i+3] = 0;
+    //     }
+    // } else {
+    //     for (int i = 0; i < 4 * in.width * in.height; i += 4) {
+    //         cur_img->data[i] = in.data[i];
+    //         cur_img->data[i+1] = in.data[i+1];
+    //         cur_img->data[i+2] = in.data[i+2];
+    //         cur_img->data[i+3] = 0;
+    //     }
+    // }
 
     // XImage *img = XCreateImage(display, visual, default_depth,
     //     ZPixmap, 0, in.data, in.width, in.height, 32, 0);
@@ -167,7 +183,7 @@ int draw(Image in) {
     swap_info.swap_action = XdbeUndefined;
     XdbeSwapBuffers(display, &swap_info, 1);
 
-    XPutImage(display, main_back_buffer, main_gc, cur_img, 0, 0, 0, 0, in.width, in.height);
+    XShmPutImage(display, main_back_buffer, main_gc, cur_img, 0, 0, 0, 0, in.width, in.height);
 
     XdbeEndIdiom(display);
     
