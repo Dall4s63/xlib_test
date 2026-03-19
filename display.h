@@ -26,9 +26,11 @@ typedef struct _event_callbacks {
     void (*window_destroyed)(void);
 } EventCallbacks;
 
-int setup_window(int width, int height);
+// int setup_window(int width, int height);
+int setup_window(int width, int height, Image *canvas);
 
-int draw(Image in);
+// int draw(Image in);
+int draw(int width, int height, Image *canvas);
 
 int handle_events(EventCallbacks *callbacks);
 

@@ -63,38 +63,43 @@ int error_handler(Display *d, XErrorEvent *e) {
     return 0;
 }
 
-// this will return a pointer to the shared memory location of the image
-static int setup_shm_image(int width, int height, Image *out) {
+static int setup_shm_image(Image c) {
     // char *new_data = malloc(sizeof(char) * 4 * width * height);
     // if (new_data == NULL) { return 1; }
     cur_img = XShmCreateImage(display, visual, default_depth, ZPixmap,
-        NULL, &shminfo, width, height);
+        NULL, &shminfo, c.width, c.height);
     shminfo.shmid = shmget(IPC_PRIVATE, 
         cur_img->bytes_per_line * cur_img->height, IPC_CREAT|0777);
-    out->data = shminfo.shmaddr = cur_img->data = shmat(shminfo.shmid, 0, 0);
-    out->width = width;
-    out->height = height;
-    shminfo.readOnly = false;
-    Status res = XShmAttach(display, &shminfo);
-    if (res == 0) {
-        printf("failure to attach shm memory\n");
-    }
-    // printf("bpl: %d, height: %d\n", cur_img->bytes_per_line, cur_img->height);
     return 0;
 }
 
-static void teardown_shm_image(void) {
-    XShmDetach(display, &shminfo);
-    XDestroyImage(cur_img);
-    shmdt(shminfo.shmaddr);
-    shmctl(shminfo.shmid, IPC_RMID, 0);
+static int setup_image(int width, int height) {
+    char *new_data = malloc(sizeof(char) * 4 * width * height);
+    if (new_data == NULL) { return 1; }
+    cur_img = XCreateImage(display, visual, default_depth, ZPixmap,
+        0, new_data, width, height, 32, 0);
+    return 0;
 }
 
-int setup_window(int width, int height, Image *canvas) {
+int setup_window(int width, int height) {
     XSetErrorHandler(&error_handler);
 
     display = XOpenDisplay(NULL);
     screen_number = DefaultScreen(display);
+
+    // int num_ext; 
+    // char **exts = XListExtensions(display, &num_ext);
+    // for (int i = 0; i < num_ext; ++i) {
+    //     printf("extension: %s\n", exts[i]);
+    // }
+
+    // int major_opcode, first_event, first_error;
+    // if (XQueryExtension(display, "DOUBLE-BUFFER", &major_opcode, &first_event, &first_event)) {
+    //     printf("extension present with opcode %d\n", major_opcode);
+    // } else {
+    //     printf("extension not presennt\n");
+    // }
+
     screen = DefaultScreenOfDisplay(display);
 
     visual = DefaultVisualOfScreen(screen);
@@ -138,23 +143,20 @@ int setup_window(int width, int height, Image *canvas) {
     //     // TODO we have a problem
     // }
 
-    // printf("shm extension %d\n", XShmQueryExtension(display));
-    setup_shm_image(width, height, canvas);
+    printf("shm extension %d\n", XShmQueryExtension(display));
 
     return 0;
 }
 
-int draw(int width, int height, Image *canvas) {
+int draw(Image in) {
     if (cur_img == NULL) {
         // setup_image(in.width, in.height);
-        setup_shm_image(width, height, canvas);
+        setup_shm_image(in);
     }
-    if ((width != cur_img->width) || (height != cur_img->height)) {
-        // XDestroyImage(cur_img);
+    if ((in.width != cur_img->width) || (in.height != cur_img->height)) {
+        XDestroyImage(cur_img);
         // setup_image(in.width, in.height);
-        teardown_shm_image();
-        setup_shm_image(width, height, canvas);
-        return 1;
+        setup_shm_image(in);
     }
     // if (byte_order == LSBFirst) {
     //     for (int i = 0; i < 4 * in.width * in.height; i += 4) {
@@ -183,7 +185,7 @@ int draw(int width, int height, Image *canvas) {
     swap_info.swap_action = XdbeUndefined;
     XdbeSwapBuffers(display, &swap_info, 1);
 
-    XShmPutImage(display, main_back_buffer, main_gc, cur_img, 0, 0, 0, 0, width, height, false);
+    XShmPutImage(display, main_back_buffer, main_gc, cur_img, 0, 0, 0, 0, in.width, in.height);
 
     XdbeEndIdiom(display);
     

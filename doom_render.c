@@ -141,7 +141,8 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
 
 void render_run(Image canvas) {
     memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
-    memset(canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
+    // memset(canvas, 0, canvas_width * canvas_height * 4);
+    // printf("w: %d, h: %d\n", canvas_width, canvas_height);
 
     // TODO debug stuff
     double debug_xoff = 60.0;

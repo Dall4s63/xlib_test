@@ -10,22 +10,26 @@
 #include "game.h"
 #include "doom_render.h"
 
-int win_width = 600;
-int win_height = 400;
+static int win_width = 640;
+static int win_height = 360;
 
-int fps = 30;
+static int fps = 30;
 
-Image test_image = {0, 0, 0};
+// static unsigned char *render_canvas;
 
-void temp_img(void) {
-    test_image.width = win_width;
-    test_image.height = win_height;
-    test_image.data = malloc(sizeof(char) * 4 * test_image.width * test_image.height);
-    if (test_image.data == NULL) { printf("Helpppp\n"); }
-    memset(test_image.data, 0, 4 * test_image.width * test_image.height);
-}
+static Image render_canvas;
 
-bool window_closed = false;
+// Image test_image = {0, 0, 0};
+
+// void temp_img(void) {
+//     test_image.width = win_width;
+//     test_image.height = win_height;
+//     // test_image.data = malloc(sizeof(char) * 4 * test_image.width * test_image.height);
+//     if (test_image.data == NULL) { printf("Helpppp\n"); }
+//     memset(test_image.data, 0, 4 * test_image.width * test_image.height);
+// }
+
+static bool window_closed = false;
 
 void engine_window_destroyed(void) {
     // printf("window_destroyed callback called\n");
@@ -36,8 +40,8 @@ void engine_window_destroyed(void) {
 void engine_window_resized(int width, int height) {
     win_width = width;
     win_height = height;
-    free(test_image.data);
-    test_image.data = NULL;
+    // free(test_image.data);
+    // test_image.data = NULL;
 }
 
 void engine_key_press(KeyId key, unsigned int scancode, bool is_repeat) {
@@ -69,8 +73,9 @@ int main(void) {
     callbacks.window_resized = &engine_window_resized;
     callbacks.key_press = &engine_key_press;
     callbacks.key_release = &engine_key_release;
-    setup_window(800, 600);
-    render_setup(480, 270);
+    setup_window(800, 600, &render_canvas);
+    // render_setup(480, 270);
+    render_setup(640, 360);
 
     // Image temp = temp_img_gen();
     // DrawableId temp_id = new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
@@ -93,11 +98,12 @@ int main(void) {
 
         game_update(dt);
 
-        if (test_image.data == NULL) {
-            temp_img();
-        }
+        // if (test_image.data == NULL) {
+        //     temp_img();
+        // }
         // render_run(test_image);
-        draw(test_image);
+        render_run(render_canvas);
+        draw(win_width, win_height, &render_canvas);
         // handle_events(&callbacks);
         clock_gettime(CLOCK_REALTIME, &end);
         diff = timespec_sub(end, start);

@@ -41,6 +41,7 @@ typedef struct _map {
 
 int render_setup(int v_width, int v_height);
 void render_run(Image out_canvas);
+// void render_run(int in_width, int in_height, unsigned char *canvas);
 
 DoubleVec2 cam_pos_add(DoubleVec2 v);
 double cam_angle_add(double a);
