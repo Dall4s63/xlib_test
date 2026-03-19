@@ -190,12 +190,19 @@ void render_run(Image canvas) {
         double wall_below_cam = cam.height;
         double swh = wall_above_cam / distance * flat_dtp;
         // wall_top = (int)((swh / vp_height + 0.5) * vc_height) - 1; 
-        wall_top = (int)((0.5 - swh / vp_height) * vc_height) + 1; 
+        // wall_top = (int)((0.5 - swh / vp_height) * vc_height) + 1; 
+        wall_top = (int)((0.5 - swh / vp_height) * vc_height); 
         // printf("%lf\n", swh/vp_height);
         // wall_top = (int)((swh / vp_height) * vc_height) - 1; 
         swh = wall_below_cam / distance * flat_dtp;
         // printf("%lf\n", swh/vp_height);
-        wall_bot = (int)((0.5 + swh / vp_height) * vc_height) - 1;
+        //wall_bot = (int)((0.5 + swh / vp_height) * vc_height) - 1;
+        wall_bot = (int)((0.5 + swh / vp_height) * vc_height);
+
+        if (distance >= 100000.0) {
+            wall_top += 1;
+            wall_bot -= 1;
+        }
         // wall_bot = (int)((swh / vp_height) * vc_height) + 1;
         // printf("%d, %d\n", wall_top, wall_bot);
         // wall_top = virtual_canvas.height - wall_top;
@@ -221,6 +228,7 @@ void render_run(Image canvas) {
                     c[2] = 0x25;
                     c[3] = 0xff;
                 }
+
             } else {
                 // floor / ceiling
                 if (row_i <= virtual_canvas.height/2) {
@@ -232,12 +240,26 @@ void render_run(Image canvas) {
                 } else {
                     // floor
                     DoubleVec2 spot;
-                    double dv = abs(row + 0.5 / vc_height - 0.5) * vp_height;
+                    // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
+                    double dv = fabs((row)/vc_height - 0.5) * vp_height;
+                    double spot_len = flat_dtp / dv * cam.height;
+                    spot.x = ray.dir.x * spot_len + cam.pos.x;
+                    spot.y = ray.dir.y * spot_len + cam.pos.y;
+                    double _;
+                    double samplex = modf(spot.x, &_);
+                    if (samplex < 0) {
+                        samplex += 1.0;
+                    }
+                    double sampley = modf(spot.y, &_);
+                    if (sampley < 0) {
+                        sampley += 1.0;
+                    }
+                    FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
                     // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-                    c[0] = 0x25;
-                    c[1] = 0x30;
-                    c[2] = 0x40;
-                    c[3] = 0xff;
+                    c[0] = (unsigned char)(c_sample.r * 255);
+                    c[1] = (unsigned char)(c_sample.g * 255);
+                    c[2] = (unsigned char)(c_sample.b * 255);
+                    c[3] = (unsigned char)(c_sample.a * 255);
                 }
             }
             set_pixel(virtual_canvas, row_i, column_i, c);

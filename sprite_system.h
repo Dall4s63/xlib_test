@@ -19,6 +19,7 @@ void sprite_free(int id);
 
 int sprite_width(int id);
 int sprite_height(int id);
+FColor sprite_fsample(int id, double x, double y);
 FColor sprite_sample(int id, int x, int y);
 
 #endif

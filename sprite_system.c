@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "sprite_system.h"
 #include "hash_str_int.h"
@@ -92,6 +93,17 @@ int sprite_width(int id) {
 int sprite_height(int id) {
     int i = sprites_i_to_id[id];
     return sprites[i].height;
+}
+
+// x and y are between 0 and 1
+FColor sprite_fsample(int id, double x, double y) {
+    int i = sprites_i_to_id[id];
+    int iwidth = sprites[i].width;
+    double width = (double)iwidth;
+    double height = (double)sprites[i].height;
+    int row = (int)floor(width * x);
+    int col = (int)floor(height * y);
+    return sprites[i].data[row * iwidth + col];
 }
 
 FColor sprite_sample(int id, int x, int y) {
