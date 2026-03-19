@@ -70,7 +70,7 @@ int main(void) {
     callbacks.key_press = &engine_key_press;
     callbacks.key_release = &engine_key_release;
     setup_window(800, 600);
-    render_setup(640, 360);
+    render_setup(480, 270);
 
     // Image temp = temp_img_gen();
     // DrawableId temp_id = new_sprite(20, 20, temp.width, temp.height, 0, temp.data);
@@ -96,10 +96,9 @@ int main(void) {
         if (test_image.data == NULL) {
             temp_img();
         }
-        // render_run(test_image);
         render_run(test_image);
         draw(test_image);
-        handle_events(&callbacks);
+        // handle_events(&callbacks);
         clock_gettime(CLOCK_REALTIME, &end);
         diff = timespec_sub(end, start);
         rem = timespec_sub(frame_time, diff);

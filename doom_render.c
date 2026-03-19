@@ -98,6 +98,14 @@ int render_setup(int v_width, int v_height) {
     return 0;
 }
 
+static void set_pixel_inv(Image canvas, int row, int col, char c[4]) {
+    int i = (col * canvas.height + row) * 4;
+    canvas.data[i + 0] = c[0];
+    canvas.data[i + 1] = c[1];
+    canvas.data[i + 2] = c[2];
+    canvas.data[i + 3] = c[3];
+}
+
 static void set_pixel(Image canvas, int row, int col, char c[4]) {
     int i = (row * canvas.width + col) * 4;
     canvas.data[i + 0] = c[0];
@@ -133,6 +141,7 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
 
 void render_run(Image canvas) {
     memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
+    memset(canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
 
     // TODO debug stuff
     double debug_xoff = 60.0;
@@ -166,6 +175,7 @@ void render_run(Image canvas) {
         int wall_i = -1;
         // double flat_dtp = vp_dist;
         double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
+        double wall_xdist;
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
             DoubleVec2 end_a = temp_room.walls[i].a;
@@ -180,6 +190,9 @@ void render_run(Image canvas) {
             if (d < distance && d > flat_dtp) {
                 distance = d;
                 wall_i = i;
+                vec.x = i_point.x - temp_room.walls[i].a.x;
+                vec.y = i_point.y - temp_room.walls[i].a.y;
+                wall_xdist = sqrt(vec.x * vec.x + vec.y * vec.y);
             }
         }
 
@@ -217,6 +230,7 @@ void render_run(Image canvas) {
             if (row_i <= wall_bot && row_i >= wall_top) {
                 // printf("wall\n");
                 // wall
+                DoubleVec2 spot;
                 if (wall_i % 2) {
                     c[0] = 0x30;
                     c[1] = 0x50;
@@ -266,23 +280,23 @@ void render_run(Image canvas) {
         }
     }
 
-    {
-    int width = sprite_width(spr_id);
-    int height = sprite_height(spr_id);
-    for (int x = 0; x < width; ++x) {
-        for (int y = 0; y < height; ++y) {
-            FColor fc = sprite_sample(spr_id, x, y);
-            // printf("%f %f %f %f\n", fc.r, fc.g, fc.b, fc.a);
-            unsigned char c[4];
-            c[0] = (unsigned char) (fc.r * 255.0);
-            c[1] = (unsigned char) (fc.g * 255.0);
-            c[2] = (unsigned char) (fc.b * 255.0);
-            c[3] = (unsigned char) (fc.a * 255.0);
-            // printf("%x%x%x%x\n", c[0], c[1], c[2], c[3]);
-            set_pixel(virtual_canvas, y + 100, x + 100, c);
-        }
-    }
-    }
+    // {
+    // int width = sprite_width(spr_id);
+    // int height = sprite_height(spr_id);
+    // for (int x = 0; x < width; ++x) {
+    //     for (int y = 0; y < height; ++y) {
+    //         FColor fc = sprite_sample(spr_id, x, y);
+    //         // printf("%f %f %f %f\n", fc.r, fc.g, fc.b, fc.a);
+    //         unsigned char c[4];
+    //         c[0] = (unsigned char) (fc.r * 255.0);
+    //         c[1] = (unsigned char) (fc.g * 255.0);
+    //         c[2] = (unsigned char) (fc.b * 255.0);
+    //         c[3] = (unsigned char) (fc.a * 255.0);
+    //         // printf("%x%x%x%x\n", c[0], c[1], c[2], c[3]);
+    //         set_pixel(virtual_canvas, y + 100, x + 100, c);
+    //     }
+    // }
+    // }
 
     for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
         int row = i / 4 / canvas.width;
@@ -290,6 +304,7 @@ void render_run(Image canvas) {
         int v_row = row * virtual_canvas.height / canvas.height;
         int v_col = col * virtual_canvas.width / canvas.width;
         int v_index = (v_row * virtual_canvas.width + v_col) * 4;
+        // int v_index = (v_col * virtual_canvas.height + v_row) * 4;
         canvas.data[i + 0] = virtual_canvas.data[v_index + 0];
         canvas.data[i + 1] = virtual_canvas.data[v_index + 1];
         canvas.data[i + 2] = virtual_canvas.data[v_index + 2];
