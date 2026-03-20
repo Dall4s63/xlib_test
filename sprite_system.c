@@ -9,6 +9,13 @@
 
 #define INIT_LEN 60
 
+/*
+ * NOTE i want the color operations to assume 
+ * premultiplied alpha
+ */
+FColor fcolor_mul(FColor a, FColor b) {
+}
+
 typedef struct _sprite {
     FColor *data;
     int width;
@@ -97,6 +104,10 @@ int sprite_height(int id) {
 
 // x and y are between 0 and 1
 FColor sprite_fsample(int id, double x, double y) {
+    if (x < 0.0) { x = 0.0; }
+    if (x > 1.0) { x = 1.0; }
+    if (y < 0.0) { y = 0.0; }
+    if (y > 1.0) { y = 1.0; }
     int i = sprites_i_to_id[id];
     int iwidth = sprites[i].width;
     double width = (double)iwidth;
@@ -134,6 +145,15 @@ static uint32_t betole(uint32_t v) {
     uint32_t c = (v&0x00ff0000) >> 16;
     uint32_t d = (v&0xff000000) >> 24;
     return (a << 24) | (b << 16) | (c << 8) | (d);
+}
+
+static void set_color(uint8_t c[4], FColor *dst) {
+    *dst = (FColor) {
+        .r = (float)c[0] / 255.0,
+        .g = (float)c[1] / 255.0,
+        .b = (float)c[2] / 255.0,
+        .a = (float)c[3] / 255.0,
+    };
 }
 
 static int qoi_load(char *fname, Sprite *ret) {
@@ -204,13 +224,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             prev[1] = *(cur + 2);
             prev[2] = *(cur + 3);
             qoi_insert(prevs, prev);
-            // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
-            ret->data[ret_i++] = (FColor) {
-                .r = (float)prev[0] / 255.0,
-                .g = (float)prev[1] / 255.0,
-                .b = (float)prev[2] / 255.0,
-                .a = (float)prev[3] / 255.0
-            };
+            set_color(prev, ret->data + ret_i++);
             cur += 4;
             continue;
 
@@ -223,12 +237,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             prev[3] = *(cur + 4);
             qoi_insert(prevs, prev);
             // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
-            ret->data[ret_i++] = (FColor) {
-                .r = (float)prev[0] / 255.0,
-                .g = (float)prev[1] / 255.0,
-                .b = (float)prev[2] / 255.0,
-                .a = (float)prev[3] / 255.0
-            };
+            set_color(prev, ret->data + ret_i++);
             cur += 5;
             continue;
         }
@@ -244,12 +253,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             prev[2] = prevs[i * 4 + 2];
             prev[3] = prevs[i * 4 + 3];
             // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
-            ret->data[ret_i++] = (FColor) {
-                .r = (float)prev[0] / 255.0,
-                .g = (float)prev[1] / 255.0,
-                .b = (float)prev[2] / 255.0,
-                .a = (float)prev[3] / 255.0
-            };
+            set_color(prev, ret->data + ret_i++);
             }
             cur += 1;
             break;
@@ -274,12 +278,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             prev[0] = (uint8_t)new_r;
             prev[1] = (uint8_t)new_g;
             prev[2] = (uint8_t)new_b;
-            ret->data[ret_i++] = (FColor) {
-                .r = (float)prev[0] / 255.0,
-                .g = (float)prev[1] / 255.0,
-                .b = (float)prev[2] / 255.0,
-                .a = (float)prev[3] / 255.0
-            };
+            set_color(prev, ret->data + ret_i++);
             }
             cur += 1;
             break;
@@ -306,12 +305,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             prev[0] = (uint8_t)new_r;
             prev[1] = (uint8_t)new_g;
             prev[2] = (uint8_t)new_b;
-            ret->data[ret_i++] = (FColor) {
-                .r = (float)prev[0] / 255.0,
-                .g = (float)prev[1] / 255.0,
-                .b = (float)prev[2] / 255.0,
-                .a = (float)prev[3] / 255.0
-            };
+            set_color(prev, ret->data + ret_i++);
             }
             cur += 2;
             break;
@@ -322,12 +316,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             unsigned int len = ((*cur)&0x3f) + 1;
             for (unsigned int i = 0; i < len; ++i) {
                 // printf("pixel: %x%x%x%x\n", prev[0], prev[1], prev[2], prev[3]);
-                ret->data[ret_i++] = (FColor) {
-                    .r = (float)prev[0] / 255.0,
-                    .g = (float)prev[1] / 255.0,
-                    .b = (float)prev[2] / 255.0,
-                    .a = (float)prev[3] / 255.0
-                };
+                set_color(prev, ret->data + ret_i++);
             }
             }
             cur += 1;

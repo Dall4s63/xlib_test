@@ -233,11 +233,14 @@ void render_run(Image canvas) {
                 // printf("wall\n");
                 // wall
                 DoubleVec2 spot;
-                double dv = row / vc_height * vp_height;
-                double wall_ydist = dv / flat_dtp * distance;
+                double dv = (row / vc_height - 0.5) * vp_height;
+                double wall_ydist = temp_room.wall_height - cam.height + dv / flat_dtp * distance;
                 double _;
                 double samplex = modf(wall_xdist, &_);
                 double sampley = modf(wall_ydist, &_);
+                if (sampley < 0.0) {
+                    sampley = 0.0;
+                }
                 FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
                 // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
                 c[0] = (unsigned char)(c_sample.r * 255);

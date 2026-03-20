@@ -1,7 +1,7 @@
 # Things To Do
 
  - [ ] sprites for the walls, floor and ceiling.
- - [ ] image loading
+ - [X] image loading
  - [ ] camera light radius
 
  - [ ] map with baked in lighting?
