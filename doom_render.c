@@ -11,6 +11,15 @@ static Image virtual_canvas;
 
 static double vp_dist = 0.25;
 // static double vp_width = 0.5;
+static double vp_width;
+static double vc_width;
+static double vc_height;
+static double vp_height;
+
+static DoubleVec2 *column_vecs;
+static int column_vecs_len;
+static double *flat_dtps;
+static int flat_dtps_len;
 
 static Camera cam = (Camera) { 
     (DoubleVec2) { .x = 0.0, .y = 0.0 },
@@ -21,7 +30,7 @@ static Camera cam = (Camera) {
 
 static MapRoom temp_room;
 
-Image debug_canvas;
+// Image debug_canvas;
 
 static int spr_id;
 
@@ -36,9 +45,9 @@ int render_setup(int v_width, int v_height) {
     }
 
     // TODO debug stuff
-    debug_canvas.width = v_width;
-    debug_canvas.height = v_height;
-    debug_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
+    // debug_canvas.width = v_width;
+    // debug_canvas.height = v_height;
+    // debug_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
 
     // TODO initialise the room
 
@@ -95,6 +104,31 @@ int render_setup(int v_width, int v_height) {
     };
     temp_room.wall_height = 4.0;
 
+    vp_width = tan(cam.fov * M_PI / (180.0 * 2.0)) * vp_dist * 2;
+    vc_width = (double) virtual_canvas.width;
+    vc_height = (double) virtual_canvas.height;
+    {
+    double aspect_ratio = vc_height / vc_width;
+    vp_height = vp_width * aspect_ratio;
+    }
+
+    column_vecs = malloc(sizeof(DoubleVec2) * vc_width);
+    if (column_vecs == NULL) {
+        // TODO we have a problem
+    }
+    column_vecs_len = vc_width;
+
+    flat_dtps = malloc(sizeof(double) * vc_width);
+    flat_dtps_len = vc_width;
+
+    for (int col = 0; col < vc_width; ++col) {
+        double vp_dwidth = (col / vc_width - 0.5) * vp_width;
+        column_vecs[col].x = vp_dwidth;
+        column_vecs[col].y = vp_dist;
+        column_vecs[col] = vec_normalize(column_vecs[col]);
+        flat_dtps[col] = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
+    }
+
     return 0;
 }
 
@@ -141,42 +175,30 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
 }
 
 void render_run(Image canvas) {
-    memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
+    // memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
     // memset(canvas, 0, canvas_width * canvas_height * 4);
     // printf("w: %d, h: %d\n", canvas_width, canvas_height);
 
     // TODO debug stuff
-    double debug_xoff = 60.0;
-    double debug_yoff = 60.0;
-    double debug_sf = 3.0;
+    // double debug_xoff = 60.0;
+    // double debug_yoff = 60.0;
+    // double debug_sf = 3.0;
 
     // TODO fix this
     // double vp_dist = (vp_width/2) / tan(cam.fov * M_PI / (180.0 * 2.0));
     // printf("%lf\n", vp_dist);
-    double vp_width = tan(cam.fov * M_PI / (180.0 * 2.0)) * vp_dist * 2;
-    double vc_width = (double) virtual_canvas.width;
-    double vc_height = (double) virtual_canvas.height;
-    double vp_height;
-    {
-    double aspect_ratio = vc_height / vc_width;
-    vp_height = vp_width * aspect_ratio;
-    }
     
     for (int column_i = 0; column_i < virtual_canvas.width; ++column_i) {
         double col = (double)column_i;
 
         DoubleRay ray;
-        double vp_dwidth = (col / vc_width - 0.5) * vp_width;
-        ray.dir.x = vp_dwidth;
-        ray.dir.y = vp_dist;
-        ray.dir = vec_normalize(ray.dir);
-        ray.dir = vec_rotate(ray.dir, cam.angle);
+        ray.dir = vec_rotate(column_vecs[column_i], cam.angle);
         ray.origin = cam.pos;
         // TODO find a suitably large number
         double distance = 100000.0;
         int wall_i = -1;
         // double flat_dtp = vp_dist;
-        double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
+        double flat_dtp = flat_dtps[column_i];
         double wall_xdist;
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
@@ -229,31 +251,31 @@ void render_run(Image canvas) {
             // ceiling
             double row = (double)row_i;
             char c[4];
-            // DoubleVec2 spot;
-            // // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
-            // double dv = fabs(row/vc_height - 0.5) * vp_height;
-            // double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
-            // spot.x = ray.dir.x * spot_len + cam.pos.x;
-            // spot.y = ray.dir.y * spot_len + cam.pos.y;
-            // double _;
-            // double samplex = modf(spot.x, &_);
-            // if (samplex < 0) {
-            //     samplex += 1.0;
-            // }
-            // double sampley = modf(spot.y, &_);
-            // if (sampley < 0) {
-            //     sampley += 1.0;
-            // }
-            // FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
-            // // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-            // c[0] = (unsigned char)(c_sample.r * 255);
-            // c[1] = (unsigned char)(c_sample.g * 255);
-            // c[2] = (unsigned char)(c_sample.b * 255);
-            // c[3] = (unsigned char)(c_sample.a * 255);
-            c[0] = (unsigned char)(1.0 * 255);
-            c[1] = (unsigned char)(1.0 * 255);
-            c[2] = (unsigned char)(1.0 * 255);
-            c[3] = (unsigned char)(1.0 * 255);
+            DoubleVec2 spot;
+            // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
+            double dv = fabs(row/vc_height - 0.5) * vp_height;
+            double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
+            spot.x = ray.dir.x * spot_len + cam.pos.x;
+            spot.y = ray.dir.y * spot_len + cam.pos.y;
+            double _;
+            double samplex = modf(spot.x, &_);
+            if (samplex < 0) {
+                samplex += 1.0;
+            }
+            double sampley = modf(spot.y, &_);
+            if (sampley < 0) {
+                sampley += 1.0;
+            }
+            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            c[0] = (unsigned char)(c_sample.r * 255);
+            c[1] = (unsigned char)(c_sample.g * 255);
+            c[2] = (unsigned char)(c_sample.b * 255);
+            c[3] = (unsigned char)(c_sample.a * 255);
+            // c[0] = (unsigned char)(1.0 * 255);
+            // c[1] = (unsigned char)(1.0 * 255);
+            // c[2] = (unsigned char)(1.0 * 255);
+            // c[3] = (unsigned char)(1.0 * 255);
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
