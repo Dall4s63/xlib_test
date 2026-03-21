@@ -229,31 +229,27 @@ void render_run(Image canvas) {
             // ceiling
             double row = (double)row_i;
             char c[4];
-            // DoubleVec2 spot;
-            // // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
-            // double dv = fabs(row/vc_height - 0.5) * vp_height;
-            // double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
-            // spot.x = ray.dir.x * spot_len + cam.pos.x;
-            // spot.y = ray.dir.y * spot_len + cam.pos.y;
-            // double _;
-            // double samplex = modf(spot.x, &_);
-            // if (samplex < 0) {
-            //     samplex += 1.0;
-            // }
-            // double sampley = modf(spot.y, &_);
-            // if (sampley < 0) {
-            //     sampley += 1.0;
-            // }
-            // FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
-            // // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-            // c[0] = (unsigned char)(c_sample.r * 255);
-            // c[1] = (unsigned char)(c_sample.g * 255);
-            // c[2] = (unsigned char)(c_sample.b * 255);
-            // c[3] = (unsigned char)(c_sample.a * 255);
-            c[0] = (unsigned char)(1.0 * 255);
-            c[1] = (unsigned char)(1.0 * 255);
-            c[2] = (unsigned char)(1.0 * 255);
-            c[3] = (unsigned char)(1.0 * 255);
+            DoubleVec2 spot;
+            // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
+            double dv = fabs(row/vc_height - 0.5) * vp_height;
+            double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
+            spot.x = ray.dir.x * spot_len + cam.pos.x;
+            spot.y = ray.dir.y * spot_len + cam.pos.y;
+            double _;
+            double samplex = modf(spot.x, &_);
+            if (samplex < 0) {
+                samplex += 1.0;
+            }
+            double sampley = modf(spot.y, &_);
+            if (sampley < 0) {
+                sampley += 1.0;
+            }
+            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            c[0] = (unsigned char)(c_sample.r * 255);
+            c[1] = (unsigned char)(c_sample.g * 255);
+            c[2] = (unsigned char)(c_sample.b * 255);
+            c[3] = (unsigned char)(c_sample.a * 255);
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
