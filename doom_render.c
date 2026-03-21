@@ -16,10 +16,13 @@ static double vc_width;
 static double vc_height;
 static double vp_height;
 
-static DoubleVec2 *column_vecs;
-static int column_vecs_len;
-static double *flat_dtps;
-static int flat_dtps_len;
+typedef struct _column_precalc {
+    DoubleVec2 dir;
+    double flat_dtp;
+} ColumnPrecalc;
+
+static ColumnPrecalc *col_precalcs;
+static int col_precalcs_len;
 
 static Camera cam = (Camera) { 
     (DoubleVec2) { .x = 0.0, .y = 0.0 },
@@ -112,21 +115,15 @@ int render_setup(int v_width, int v_height) {
     vp_height = vp_width * aspect_ratio;
     }
 
-    column_vecs = malloc(sizeof(DoubleVec2) * vc_width);
-    if (column_vecs == NULL) {
-        // TODO we have a problem
-    }
-    column_vecs_len = vc_width;
-
-    flat_dtps = malloc(sizeof(double) * vc_width);
-    flat_dtps_len = vc_width;
+    col_precalcs = malloc(sizeof(ColumnPrecalc) * vc_width);
+    col_precalcs_len = vc_width;
 
     for (int col = 0; col < vc_width; ++col) {
         double vp_dwidth = (col / vc_width - 0.5) * vp_width;
-        column_vecs[col].x = vp_dwidth;
-        column_vecs[col].y = vp_dist;
-        column_vecs[col] = vec_normalize(column_vecs[col]);
-        flat_dtps[col] = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
+        col_precalcs[col].dir.x = vp_dwidth;
+        col_precalcs[col].dir.y = vp_dist;
+        col_precalcs[col].dir = vec_normalize(col_precalcs[col].dir);
+        col_precalcs[col].flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
     }
 
     return 0;
@@ -192,13 +189,13 @@ void render_run(Image canvas) {
         double col = (double)column_i;
 
         DoubleRay ray;
-        ray.dir = vec_rotate(column_vecs[column_i], cam.angle);
+        ray.dir = vec_rotate(col_precalcs[column_i].dir, cam.angle);
         ray.origin = cam.pos;
         // TODO find a suitably large number
         double distance = 100000.0;
         int wall_i = -1;
         // double flat_dtp = vp_dist;
-        double flat_dtp = flat_dtps[column_i];
+        double flat_dtp = col_precalcs[column_i].flat_dtp;
         double wall_xdist;
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
