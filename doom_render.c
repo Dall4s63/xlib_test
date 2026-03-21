@@ -224,74 +224,82 @@ void render_run(Image canvas) {
         // wall_bot = virtual_canvas.height - wall_bot;
         }
 
-        for (int row_i = 0; row_i < virtual_canvas.height; ++row_i) {
-            // int i = (row_i * virtual_canvas.width + column_i) * 4;
+        int row_i = 0;
+        for (; row_i < wall_top; ++row_i) {
+            // ceiling
             double row = (double)row_i;
             char c[4];
-
-            if (row_i <= wall_bot && row_i >= wall_top) {
-                // printf("wall\n");
-                // wall
-                DoubleVec2 spot;
-                double dv = (row / vc_height - 0.5) * vp_height;
-                double wall_ydist = temp_room.wall_height - cam.height + dv / flat_dtp * distance;
-                double _;
-                double samplex = modf(wall_xdist, &_);
-                double sampley = modf(wall_ydist, &_);
-                if (sampley < 0.0) {
-                    sampley = 0.0;
-                }
-                FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
-                // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-                c[0] = (unsigned char)(c_sample.r * 255);
-                c[1] = (unsigned char)(c_sample.g * 255);
-                c[2] = (unsigned char)(c_sample.b * 255);
-                c[3] = (unsigned char)(c_sample.a * 255);
-                // if (wall_i % 2) {
-                //     c[0] = 0x30;
-                //     c[1] = 0x50;
-                //     c[2] = 0x30;
-                //     c[3] = 0xff;
-                // } else {
-                //     c[0] = 0x25;
-                //     c[1] = 0x40;
-                //     c[2] = 0x25;
-                //     c[3] = 0xff;
-                // }
-
-            } else {
-                // floor / ceiling
-                if (row_i <= virtual_canvas.height/2) {
-                    // ceiling
-                    c[0] = 0x40;
-                    c[1] = 0x30;
-                    c[2] = 0x25;
-                    c[3] = 0xff;
-                } else {
-                    // floor
-                    DoubleVec2 spot;
-                    // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
-                    double dv = fabs((row)/vc_height - 0.5) * vp_height;
-                    double spot_len = flat_dtp / dv * cam.height;
-                    spot.x = ray.dir.x * spot_len + cam.pos.x;
-                    spot.y = ray.dir.y * spot_len + cam.pos.y;
-                    double _;
-                    double samplex = modf(spot.x, &_);
-                    if (samplex < 0) {
-                        samplex += 1.0;
-                    }
-                    double sampley = modf(spot.y, &_);
-                    if (sampley < 0) {
-                        sampley += 1.0;
-                    }
-                    FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
-                    // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-                    c[0] = (unsigned char)(c_sample.r * 255);
-                    c[1] = (unsigned char)(c_sample.g * 255);
-                    c[2] = (unsigned char)(c_sample.b * 255);
-                    c[3] = (unsigned char)(c_sample.a * 255);
-                }
+            DoubleVec2 spot;
+            // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
+            double dv = fabs(row/vc_height - 0.5) * vp_height;
+            double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
+            spot.x = ray.dir.x * spot_len + cam.pos.x;
+            spot.y = ray.dir.y * spot_len + cam.pos.y;
+            double _;
+            double samplex = modf(spot.x, &_);
+            if (samplex < 0) {
+                samplex += 1.0;
             }
+            double sampley = modf(spot.y, &_);
+            if (sampley < 0) {
+                sampley += 1.0;
+            }
+            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            c[0] = (unsigned char)(c_sample.r * 255);
+            c[1] = (unsigned char)(c_sample.g * 255);
+            c[2] = (unsigned char)(c_sample.b * 255);
+            c[3] = (unsigned char)(c_sample.a * 255);
+            set_pixel(virtual_canvas, row_i, column_i, c);
+        }
+
+        for (; row_i <= wall_bot && row_i < virtual_canvas.height; ++row_i) {
+            // wall
+            double row = (double)row_i;
+            char c[4];
+            DoubleVec2 spot;
+            double dv = (row / vc_height - 0.5) * vp_height;
+            double wall_ydist = temp_room.wall_height - cam.height + dv / flat_dtp * distance;
+            double _;
+            double samplex = modf(wall_xdist, &_);
+            double sampley = modf(wall_ydist, &_);
+            if (sampley < 0.0) {
+                sampley = 0.0;
+            }
+            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            c[0] = (unsigned char)(c_sample.r * 255);
+            c[1] = (unsigned char)(c_sample.g * 255);
+            c[2] = (unsigned char)(c_sample.b * 255);
+            c[3] = (unsigned char)(c_sample.a * 255);
+            set_pixel(virtual_canvas, row_i, column_i, c);
+        }
+
+        for (; row_i < virtual_canvas.height; ++row_i) {
+            // floor
+            double row = (double)row_i;
+            char c[4];
+            DoubleVec2 spot;
+            // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
+            double dv = fabs(row/vc_height - 0.5) * vp_height;
+            double spot_len = flat_dtp / dv * cam.height;
+            spot.x = ray.dir.x * spot_len + cam.pos.x;
+            spot.y = ray.dir.y * spot_len + cam.pos.y;
+            double _;
+            double samplex = modf(spot.x, &_);
+            if (samplex < 0) {
+                samplex += 1.0;
+            }
+            double sampley = modf(spot.y, &_);
+            if (sampley < 0) {
+                sampley += 1.0;
+            }
+            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            c[0] = (unsigned char)(c_sample.r * 255);
+            c[1] = (unsigned char)(c_sample.g * 255);
+            c[2] = (unsigned char)(c_sample.b * 255);
+            c[3] = (unsigned char)(c_sample.a * 255);
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
     }
