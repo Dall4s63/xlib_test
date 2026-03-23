@@ -126,6 +126,24 @@ int render_setup(int v_width, int v_height) {
         col_precalcs[col].flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
     }
 
+    //         // ceiling
+    //         char c[4];
+    //         DoubleVec2 spot;
+    //         // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
+    //         double dv = fabs(row/vc_height - 0.5) * vp_height;
+    //         double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
+    //         spot.x = ray.dir.x * spot_len + cam.pos.x;
+    //         spot.y = ray.dir.y * spot_len + cam.pos.y;
+    //         double _;
+    //         double samplex = modf(spot.x, &_);
+    //         if (samplex < 0) {
+    //             samplex += 1.0;
+    //         }
+    //         double sampley = modf(spot.y, &_);
+    //         if (sampley < 0) {
+    //             sampley += 1.0;
+    //         }
+
     return 0;
 }
 
@@ -185,8 +203,8 @@ void render_run(Image canvas) {
     // double vp_dist = (vp_width/2) / tan(cam.fov * M_PI / (180.0 * 2.0));
     // printf("%lf\n", vp_dist);
     
-    for (int column_i = 0; column_i < virtual_canvas.width; ++column_i) {
-        double col = (double)column_i;
+    double col = 0.0;
+    for (int column_i = 0; column_i < virtual_canvas.width; ++column_i, ++col) {
 
         DoubleRay ray;
         ray.dir = vec_rotate(col_precalcs[column_i].dir, cam.angle);
@@ -244,9 +262,9 @@ void render_run(Image canvas) {
         }
 
         int row_i = 0;
-        for (; row_i < wall_top; ++row_i) {
+        double row = 0.0;
+        for (; row_i < wall_top; ++row_i, ++row) {
             // ceiling
-            double row = (double)row_i;
             char c[4];
             DoubleVec2 spot;
             // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
@@ -276,7 +294,7 @@ void render_run(Image canvas) {
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
-        for (; row_i <= wall_bot && row_i < virtual_canvas.height; ++row_i) {
+        for (; row_i <= wall_bot && row_i < virtual_canvas.height; ++row_i, ++row) {
             // wall
             double row = (double)row_i;
             char c[4];
@@ -298,7 +316,7 @@ void render_run(Image canvas) {
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
-        for (; row_i < virtual_canvas.height; ++row_i) {
+        for (; row_i < virtual_canvas.height; ++row_i, row++) {
             // floor
             double row = (double)row_i;
             char c[4];
