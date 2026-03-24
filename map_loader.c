@@ -2,13 +2,15 @@
 #include <stdlib.h>
 
 #include "map_loader.h"
+#include "double_vec2.h"
+#include "sprite_system.h"
 
 /*
  * Room File Format:
  *
- * #walls nwalls
- * a1, b1, a2, b2, "sprite_fname"
- * _, _, a2, b2, "sprite_fname"
+ * #walls nwalls wall_height
+ * a1, a2, b1, b2, sprite_fname
+ * _, _, b1, b2, sprite_fname
  *
  * the underscores are replaced by the a2 b2 values 
  * from the previous wall.
@@ -16,7 +18,7 @@
 
 #define MAX_LINE_LEN 200
 
-int load_room(char *filename, MapRoom *ret) {
+int load_room(char *filename, MapRoom *room) {
     FILE *f = fopen(filename, "r");
     if (f == NULL) {
         printf("failed to open file \"%s\"\n", filename);
@@ -28,8 +30,36 @@ int load_room(char *filename, MapRoom *ret) {
         fgets(line_buf, MAX_LINE_LEN, f);
     }
     int nwalls;
-    sscanf(line_buf, "#walls %d\n", &nwalls);
-    printf("nwalls: %d\n", nwalls);
+    double wall_height;
+    sscanf(line_buf, "#walls %d %lf\n", &nwalls, &wall_height);
+    printf("nwalls: %d %lf\n", nwalls, wall_height);
+
+    room->walls = malloc(sizeof(MapWall) * nwalls);
+    room->walls_len = nwalls;
+    room->walls_buf_len = nwalls;
+    room->wall_height = wall_height;
+
+    double prev_b1 = 0.0, prev_b2 = 0.0;
+    for (int i = 0; i < nwalls; ++i) {
+        fgets(line_buf, MAX_LINE_LEN, f);
+        double a1, a2, b1, b2;
+        char sfname[200];
+        if (line_buf[0] == '_') {
+            a1 = prev_b1;
+            a2 = prev_b2;
+            sscanf(line_buf, "_, _, %lf, %lf, %s\n", &b1, &b2, sfname);
+        } else {
+            sscanf(line_buf, "%lf, %lf, %lf, %lf, %s\n", &a1, &a2, &b1, &b2, sfname);
+        }
+        room->walls[i].a = (DoubleVec2) {.x = a1, .y = a2};
+        room->walls[i].b = (DoubleVec2) {.x = b1, .y = b2};
+        room->walls[i].spr = sprite_new(sfname);
+        prev_b1 = b1;
+        prev_b2 = b2;
+        printf("%lf, %lf, %lf, %lf, \"%s\" %d\n",
+            a1, a2, b1, b2, sfname, room->walls[i].spr);
+    }
+
     return 0;
 }
 

@@ -1,2 +1,6 @@
 
-#walls 12
+#walls 4 3.5
+-10, -10, -10, 10, assets/test.qoi
+_, _, 10, 10, assets/test.qoi
+_, _, 10, -10, assets/test.qoi
+_, _, -10, -10, assets/test.qoi
