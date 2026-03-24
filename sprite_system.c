@@ -74,6 +74,7 @@ int sprite_new(char *filename) {
         return id;
     }
     int index = sprites_len;
+    sprites_len += 1;
     // TODO expand the buffers
     // load the image
     res = qoi_load(filename, &(sprites[index]));

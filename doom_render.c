@@ -43,60 +43,7 @@ int render_setup(int v_width, int v_height) {
 
     // TODO initialise the room
 
-    // MapRoom new_room;
     load_room("assets/rooms/test.room", &temp_room);
-    // temp_room.walls_buf_len = 12;
-    // temp_room.walls_len = 12;
-    // temp_room.walls = malloc(sizeof(MapWall) * temp_room.walls_buf_len);
-    // temp_room.walls[0] = (MapWall) {
-    //     .a = (DoubleVec2){ .x = -10.0, .y = - 5.0 },
-    //     .b = (DoubleVec2){ .x = -10.0, .y =   7.0 }
-    // };
-    // temp_room.walls[1] = (MapWall) {
-    //     .a = (DoubleVec2){ .x = -10.0, .y =   7.0 },
-    //     .b = (DoubleVec2){ .x = - 5.0, .y =   7.0 }
-    // };
-    // temp_room.walls[2] = (MapWall) {
-    //     .a = (DoubleVec2){ .x = - 5.0, .y =   7.0 },
-    //     .b = (DoubleVec2){ .x = - 5.0, .y =  10.0 }
-    // };
-    // temp_room.walls[3] = (MapWall) {
-    //     .a = (DoubleVec2){ .x = - 5.0, .y =  10.0 },
-    //     .b = (DoubleVec2){ .x =   5.0, .y =  10.0 }
-    // };
-    // temp_room.walls[4] = (MapWall) {
-    //     .a = (DoubleVec2){ .x =   5.0, .y =  10.0 },
-    //     .b = (DoubleVec2){ .x =   5.0, .y =   7.0 }
-    // };
-    // temp_room.walls[5] = (MapWall) {
-    //     .a = (DoubleVec2){ .x =   5.0, .y =   7.0 },
-    //     .b = (DoubleVec2){ .x =  10.0, .y =   7.0 }
-    // };
-    // temp_room.walls[6] = (MapWall) {
-    //     .a = (DoubleVec2){ .x =  10.0, .y =   7.0 },
-    //     .b = (DoubleVec2){ .x =  10.0, .y = - 5.0 }
-    // };
-    // temp_room.walls[7] = (MapWall) {
-    //     .a = (DoubleVec2){ .x =  10.0, .y = - 5.0 },
-    //     .b = (DoubleVec2){ .x =   5.0, .y = - 5.0 }
-    // };
-    // temp_room.walls[8] = (MapWall) {
-    //     .a = (DoubleVec2){ .x =   5.0, .y = - 5.0 },
-    //     .b = (DoubleVec2){ .x =   5.0, .y = -10.0 }
-    // };
-    // temp_room.walls[9] = (MapWall) {
-    //     .a = (DoubleVec2){ .x =   5.0, .y = -10.0 },
-    //     .b = (DoubleVec2){ .x = - 5.0, .y = -10.0 }
-    // };
-    // temp_room.walls[10] = (MapWall) {
-    //     .a = (DoubleVec2){ .x = - 5.0, .y = -10.0 },
-    //     .b = (DoubleVec2){ .x = - 5.0, .y = - 5.0 }
-    // };
-    // temp_room.walls[11] = (MapWall) {
-    //     .a = (DoubleVec2){ .x = - 5.0, .y = - 5.0 },
-    //     .b = (DoubleVec2){ .x = -10.0, .y = - 5.0 }
-    // };
-    // temp_room.wall_height = 4.0;
 
     return 0;
 }
@@ -269,7 +216,7 @@ void render_run(Image canvas) {
             if (sampley < 0.0) {
                 sampley = 0.0;
             }
-            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            FColor c_sample = sprite_fsample(temp_room.walls[wall_i].spr, samplex, sampley);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
