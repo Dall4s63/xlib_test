@@ -161,9 +161,9 @@ void render_run(Image canvas) {
     double aspect_ratio = vc_height / vc_width;
     vp_height = vp_width * aspect_ratio;
     }
-    
-    for (int column_i = 0; column_i < virtual_canvas.width; ++column_i) {
-        double col = (double)column_i;
+
+    double col = 0.0;
+    for (int column_i = 0; column_i < virtual_canvas.width; ++column_i, ++col) {
 
         DoubleRay ray;
         double vp_dwidth = (col / vc_width - 0.5) * vp_width;
@@ -225,9 +225,9 @@ void render_run(Image canvas) {
         }
 
         int row_i = 0;
-        for (; row_i < wall_top; ++row_i) {
+        double row = 0.0;
+        for (; row_i < wall_top; ++row_i, ++row) {
             // ceiling
-            double row = (double)row_i;
             char c[4];
             DoubleVec2 spot;
             // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
@@ -253,7 +253,7 @@ void render_run(Image canvas) {
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
-        for (; row_i <= wall_bot && row_i < virtual_canvas.height; ++row_i) {
+        for (; row_i <= wall_bot && row_i < virtual_canvas.height; ++row_i, ++row) {
             // wall
             double row = (double)row_i;
             char c[4];
@@ -275,7 +275,7 @@ void render_run(Image canvas) {
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
-        for (; row_i < virtual_canvas.height; ++row_i) {
+        for (; row_i < virtual_canvas.height; ++row_i, ++row) {
             // floor
             double row = (double)row_i;
             char c[4];
