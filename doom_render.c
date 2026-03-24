@@ -128,6 +128,7 @@ void render_run(Image canvas) {
         // double flat_dtp = vp_dist;
         double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
         double wall_xdist;
+        double wall_len;
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
             DoubleVec2 end_a = temp_room.walls[i].a;
@@ -145,6 +146,9 @@ void render_run(Image canvas) {
                 vec.x = i_point.x - temp_room.walls[i].a.x;
                 vec.y = i_point.y - temp_room.walls[i].a.y;
                 wall_xdist = sqrt(vec.x * vec.x + vec.y * vec.y);
+                vec.x = temp_room.walls[i].b.x - temp_room.walls[i].a.x;
+                vec.y = temp_room.walls[i].b.y - temp_room.walls[i].a.y;
+                wall_len = sqrt(vec.x * vec.x + vec.y * vec.y);
             }
         }
 
@@ -211,8 +215,10 @@ void render_run(Image canvas) {
             double dv = (row / vc_height - 0.5) * vp_height;
             double wall_ydist = temp_room.wall_height - cam.height + dv / flat_dtp * distance;
             double _;
-            double samplex = modf(wall_xdist, &_);
-            double sampley = modf(wall_ydist, &_);
+            double samplex = wall_xdist / wall_len;
+            double sampley = wall_ydist / temp_room.wall_height;
+            // double samplex = modf(wall_xdist, &_);
+            // double sampley = modf(wall_ydist, &_);
             if (sampley < 0.0) {
                 sampley = 0.0;
             }
