@@ -24,6 +24,13 @@ typedef struct _column_precalc {
 static ColumnPrecalc *col_precalcs;
 static int col_precalcs_len;
 
+typedef struct _row_precalc {
+    double spot_len;
+} RowPrecalc;
+
+static RowPrecalc *row_precalcs;
+static int row_precalcs_len;
+
 static Camera cam = (Camera) { 
     (DoubleVec2) { .x = 0.0, .y = 0.0 },
     0.0,
@@ -124,6 +131,14 @@ int render_setup(int v_width, int v_height) {
         col_precalcs[col].dir.y = vp_dist;
         col_precalcs[col].dir = vec_normalize(col_precalcs[col].dir);
         col_precalcs[col].flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
+    }
+
+    row_precalcs = malloc(sizeof(RowPrecalc) * vc_height);
+    row_precalcs_len = vc_height;
+
+    for (int row = 0; row < vc_height; ++row) {
+        double dv = fabs(row/vc_height - 0.5) * vp_height;
+        row_precalcs[row].spot_len =
     }
 
     //         // ceiling
