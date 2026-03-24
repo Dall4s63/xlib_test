@@ -32,7 +32,7 @@ int load_room(char *filename, MapRoom *room) {
     int nwalls;
     double wall_height;
     sscanf(line_buf, "#walls %d %lf\n", &nwalls, &wall_height);
-    printf("nwalls: %d %lf\n", nwalls, wall_height);
+    // printf("nwalls: %d %lf\n", nwalls, wall_height);
 
     room->walls = malloc(sizeof(MapWall) * nwalls);
     room->walls_len = nwalls;
@@ -56,8 +56,8 @@ int load_room(char *filename, MapRoom *room) {
         room->walls[i].spr = sprite_new(sfname);
         prev_b1 = b1;
         prev_b2 = b2;
-        printf("%lf, %lf, %lf, %lf, \"%s\" %d\n",
-            a1, a2, b1, b2, sfname, room->walls[i].spr);
+        // printf("%lf, %lf, %lf, %lf, \"%s\" %d\n",
+        //     a1, a2, b1, b2, sfname, room->walls[i].spr);
     }
 
     return 0;

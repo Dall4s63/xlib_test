@@ -266,7 +266,7 @@ static int qoi_load(char *fname, Sprite *ret) {
             int dr = ((*cur & 0b00110000) >> 4) - 2;
             int dg = ((*cur & 0b00001100) >> 2) - 2;
             int db = (*cur & 0b00000011) - 2;
-            printf("dr: %d, dg: %d, db: %d\n", dr, dg, db);
+            // printf("dr: %d, dg: %d, db: %d\n", dr, dg, db);
             int new_r = (int)prev[0] + dr;
             if (new_r < 0) { new_r += 256; }
             if (new_r > 255) { new_r -= 256; }
