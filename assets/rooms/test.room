@@ -1,4 +1,7 @@
 
+#ceiling assets/frog.qoi
+#floor assets/test.qoi
+
 #walls 4 7
 -10, -10, -10, 10, assets/test.qoi
 _, _, 10, 10, assets/test.qoi

@@ -24,10 +24,8 @@ static MapRoom temp_room;
 
 Image debug_canvas;
 
-static int spr_id;
-
 int render_setup(int v_width, int v_height) {
-    spr_id = sprite_new("assets/test3.qoi");
+    // spr_id = sprite_new("assets/frog.qoi");
 
     virtual_canvas.width = v_width;
     virtual_canvas.height = v_height;
@@ -190,7 +188,7 @@ void render_run(Image canvas) {
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             double ldist = sqrt(spot_len * spot_len + (temp_room.wall_height - cam.height) * (temp_room.wall_height - cam.height));
-            double intensity = 70.0 / (ldist * ldist);
+            double intensity = 30.0 / (ldist * ldist);
             if (intensity > 1.0) {
                 intensity = 1.0;
             }
@@ -203,7 +201,7 @@ void render_run(Image canvas) {
             if (sampley < 0) {
                 sampley += 1.0;
             }
-            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            FColor c_sample = sprite_fsample(temp_room.ceil_spr, samplex, sampley);
             c_sample.r = c_sample.r * intensity;
             c_sample.g = c_sample.g * intensity;
             c_sample.b = c_sample.b * intensity;
@@ -224,7 +222,7 @@ void render_run(Image canvas) {
             dv = dv / flat_dtp * distance;
             double wall_ydist = temp_room.wall_height - cam.height + dv;
             double ldist = sqrt(distance * distance + dv * dv);
-            double intensity = 70.0 / (ldist * ldist);
+            double intensity = 30.0 / (ldist * ldist);
             if (intensity > 1.0) {
                 intensity = 1.0;
             }
@@ -259,7 +257,7 @@ void render_run(Image canvas) {
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             double ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
-            double intensity = 70.0 / (ldist * ldist);
+            double intensity = 30.0 / (ldist * ldist);
             if (intensity > 1.0) {
                 intensity = 1.0;
             }
@@ -272,7 +270,7 @@ void render_run(Image canvas) {
             if (sampley < 0) {
                 sampley += 1.0;
             }
-            FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            FColor c_sample = sprite_fsample(temp_room.floor_spr, samplex, sampley);
             c_sample.r = c_sample.r * intensity;
             c_sample.g = c_sample.g * intensity;
             c_sample.b = c_sample.b * intensity;

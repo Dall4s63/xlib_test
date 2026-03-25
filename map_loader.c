@@ -29,6 +29,19 @@ int load_room(char *filename, MapRoom *room) {
     while (line_buf[0] != '#') {
         fgets(line_buf, MAX_LINE_LEN, f);
     }
+    char sfname[200];
+    sscanf(line_buf, "#ceiling %s\n", sfname);
+    room->ceil_spr = sprite_new(sfname);
+    fgets(line_buf, MAX_LINE_LEN, f);
+    while (line_buf[0] != '#') {
+        fgets(line_buf, MAX_LINE_LEN, f);
+    }
+    sscanf(line_buf, "#floor %s\n", sfname);
+    fgets(line_buf, MAX_LINE_LEN, f);
+    while (line_buf[0] != '#') {
+        fgets(line_buf, MAX_LINE_LEN, f);
+    }
+    room->floor_spr = sprite_new(sfname);
     int nwalls;
     double wall_height;
     sscanf(line_buf, "#walls %d %lf\n", &nwalls, &wall_height);
@@ -43,7 +56,6 @@ int load_room(char *filename, MapRoom *room) {
     for (int i = 0; i < nwalls; ++i) {
         fgets(line_buf, MAX_LINE_LEN, f);
         double a1, a2, b1, b2;
-        char sfname[200];
         if (line_buf[0] == '_') {
             a1 = prev_b1;
             a2 = prev_b2;

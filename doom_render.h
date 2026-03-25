@@ -29,6 +29,8 @@ typedef struct _map_room {
     int walls_buf_len;
     int walls_len;
     double wall_height;
+    int floor_spr;
+    int ceil_spr;
     // TODO lights information.
     // TODO link to other rooms?
 } MapRoom;
