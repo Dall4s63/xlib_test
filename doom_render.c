@@ -14,15 +14,22 @@ static double vp_dist = 0.25;
 // static double vp_width = 0.5;
 
 static Camera cam = (Camera) { 
-    (DoubleVec2) { .x = 0.0, .y = 0.0 },
-    0.0,
-    100.0,
-    1.8
+    .pos = (DoubleVec2) { .x = 0.0, .y = 0.0 },
+    .angle = 0.0,
+    .fov = 100.0,
+    .height = 1.8
+};
+
+static PointLight cam_light = (PointLight) {
+    .c = (FColor) { .r = 1.0, .g = 0.6, .b = 0.05, .a = 1.0 },
+    .i = 70.0,
 };
 
 static MapRoom temp_room;
 
 Image debug_canvas;
+
+FColor get_plight_color(PointLight l, double dist);
 
 int render_setup(int v_width, int v_height) {
     // spr_id = sprite_new("assets/frog.qoi");
@@ -188,10 +195,6 @@ void render_run(Image canvas) {
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             double ldist = sqrt(spot_len * spot_len + (temp_room.wall_height - cam.height) * (temp_room.wall_height - cam.height));
-            double intensity = 30.0 / (ldist * ldist);
-            if (intensity > 1.0) {
-                intensity = 1.0;
-            }
             double _;
             double samplex = modf(spot.x, &_);
             if (samplex < 0) {
@@ -202,9 +205,7 @@ void render_run(Image canvas) {
                 sampley += 1.0;
             }
             FColor c_sample = sprite_fsample(temp_room.ceil_spr, samplex, sampley);
-            c_sample.r = c_sample.r * intensity;
-            c_sample.g = c_sample.g * intensity;
-            c_sample.b = c_sample.b * intensity;
+            c_sample = fcolor_mul(get_plight_color(cam_light, ldist), c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -222,10 +223,6 @@ void render_run(Image canvas) {
             dv = dv / flat_dtp * distance;
             double wall_ydist = temp_room.wall_height - cam.height + dv;
             double ldist = sqrt(distance * distance + dv * dv);
-            double intensity = 30.0 / (ldist * ldist);
-            if (intensity > 1.0) {
-                intensity = 1.0;
-            }
             double _;
             double samplex = wall_xdist / wall_len;
             double sampley = wall_ydist / temp_room.wall_height;
@@ -235,9 +232,7 @@ void render_run(Image canvas) {
                 sampley = 0.0;
             }
             FColor c_sample = sprite_fsample(temp_room.walls[wall_i].spr, samplex, sampley);
-            c_sample.r = c_sample.r * intensity;
-            c_sample.g = c_sample.g * intensity;
-            c_sample.b = c_sample.b * intensity;
+            c_sample = fcolor_mul(get_plight_color(cam_light, ldist), c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -257,10 +252,6 @@ void render_run(Image canvas) {
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             double ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
-            double intensity = 30.0 / (ldist * ldist);
-            if (intensity > 1.0) {
-                intensity = 1.0;
-            }
             double _;
             double samplex = modf(spot.x, &_);
             if (samplex < 0) {
@@ -271,9 +262,7 @@ void render_run(Image canvas) {
                 sampley += 1.0;
             }
             FColor c_sample = sprite_fsample(temp_room.floor_spr, samplex, sampley);
-            c_sample.r = c_sample.r * intensity;
-            c_sample.g = c_sample.g * intensity;
-            c_sample.b = c_sample.b * intensity;
+            c_sample = fcolor_mul(get_plight_color(cam_light, ldist), c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -282,24 +271,6 @@ void render_run(Image canvas) {
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
     }
-
-    // {
-    // int width = sprite_width(spr_id);
-    // int height = sprite_height(spr_id);
-    // for (int x = 0; x < width; ++x) {
-    //     for (int y = 0; y < height; ++y) {
-    //         FColor fc = sprite_sample(spr_id, x, y);
-    //         // printf("%f %f %f %f\n", fc.r, fc.g, fc.b, fc.a);
-    //         unsigned char c[4];
-    //         c[0] = (unsigned char) (fc.r * 255.0);
-    //         c[1] = (unsigned char) (fc.g * 255.0);
-    //         c[2] = (unsigned char) (fc.b * 255.0);
-    //         c[3] = (unsigned char) (fc.a * 255.0);
-    //         // printf("%x%x%x%x\n", c[0], c[1], c[2], c[3]);
-    //         set_pixel(virtual_canvas, y + 100, x + 100, c);
-    //     }
-    // }
-    // }
 
     for (int i = 0; i < canvas.width * canvas.height * 4; i += 4) {
         int row = i / 4 / canvas.width;
@@ -324,5 +295,16 @@ DoubleVec2 cam_pos_add(DoubleVec2 v) {
 
 double cam_angle_add(double a) {
     return cam.angle += a;
+}
+
+FColor get_plight_color(PointLight l, double dist) {
+    double ri = l.i / (dist * dist);
+    if (ri > 1.0) { ri = 1.0; }
+    return (FColor) {
+        .r = l.c.r * ri,
+        .g = l.c.g * ri,
+        .b = l.c.b * ri,
+        .a = l.c.a * ri,
+    };
 }
 

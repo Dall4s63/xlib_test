@@ -9,6 +9,7 @@
 
 #include "display.h"
 #include "double_vec2.h"
+#include "sprite_system.h"
 
 typedef struct _camera {
     DoubleVec2 pos;
@@ -16,6 +17,11 @@ typedef struct _camera {
     double fov;
     double height;
 } Camera;
+
+typedef struct _point_light {
+    FColor c;
+    double i;
+} PointLight;
 
 typedef struct _map_wall {
     DoubleVec2 a;

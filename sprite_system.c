@@ -14,6 +14,13 @@
  * premultiplied alpha
  */
 FColor fcolor_mul(FColor a, FColor b) {
+    FColor new;
+
+    new.r = a.r * b.r;
+    new.g = a.g * b.g;
+    new.b = a.b * b.b;
+
+    return new;
 }
 
 typedef struct _sprite {
