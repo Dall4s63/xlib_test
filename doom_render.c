@@ -298,7 +298,13 @@ double cam_angle_add(double a) {
 }
 
 FColor get_plight_color(PointLight l, double dist) {
-    double ri = l.i / (dist * dist);
+    double t = dist + sqrt(l.i);
+    double ri = l.i / (t * t);
+    // double ri = l.i / (dist * dist);
+    ri = ri * 5.0;
+    ri = ceil(ri);
+    ri = ri / 5.0;
+
     if (ri > 1.0) { ri = 1.0; }
     return (FColor) {
         .r = l.c.r * ri,
