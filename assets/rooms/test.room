@@ -2,5 +2,5 @@
 #walls 4 7
 -10, -10, -10, 10, assets/test.qoi
 _, _, 10, 10, assets/test.qoi
-_, _, 10, -10, assets/test2.qoi
-_, _, -10, -10, assets/test2.qoi
+_, _, 10, -10, assets/frog.qoi
+_, _, -10, -10, assets/frog.qoi

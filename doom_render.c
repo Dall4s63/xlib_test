@@ -189,6 +189,11 @@ void render_run(Image canvas) {
             double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
+            double ldist = sqrt(spot_len * spot_len + (temp_room.wall_height - cam.height) * (temp_room.wall_height - cam.height));
+            double intensity = 70.0 / (ldist * ldist);
+            if (intensity > 1.0) {
+                intensity = 1.0;
+            }
             double _;
             double samplex = modf(spot.x, &_);
             if (samplex < 0) {
@@ -199,6 +204,9 @@ void render_run(Image canvas) {
                 sampley += 1.0;
             }
             FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            c_sample.r = c_sample.r * intensity;
+            c_sample.g = c_sample.g * intensity;
+            c_sample.b = c_sample.b * intensity;
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -213,7 +221,13 @@ void render_run(Image canvas) {
             char c[4];
             DoubleVec2 spot;
             double dv = (row / vc_height - 0.5) * vp_height;
-            double wall_ydist = temp_room.wall_height - cam.height + dv / flat_dtp * distance;
+            dv = dv / flat_dtp * distance;
+            double wall_ydist = temp_room.wall_height - cam.height + dv;
+            double ldist = sqrt(distance * distance + dv * dv);
+            double intensity = 70.0 / (ldist * ldist);
+            if (intensity > 1.0) {
+                intensity = 1.0;
+            }
             double _;
             double samplex = wall_xdist / wall_len;
             double sampley = wall_ydist / temp_room.wall_height;
@@ -223,6 +237,9 @@ void render_run(Image canvas) {
                 sampley = 0.0;
             }
             FColor c_sample = sprite_fsample(temp_room.walls[wall_i].spr, samplex, sampley);
+            c_sample.r = c_sample.r * intensity;
+            c_sample.g = c_sample.g * intensity;
+            c_sample.b = c_sample.b * intensity;
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -241,6 +258,11 @@ void render_run(Image canvas) {
             double spot_len = flat_dtp / dv * cam.height;
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
+            double ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
+            double intensity = 70.0 / (ldist * ldist);
+            if (intensity > 1.0) {
+                intensity = 1.0;
+            }
             double _;
             double samplex = modf(spot.x, &_);
             if (samplex < 0) {
@@ -251,6 +273,9 @@ void render_run(Image canvas) {
                 sampley += 1.0;
             }
             FColor c_sample = sprite_fsample(spr_id, samplex, sampley);
+            c_sample.r = c_sample.r * intensity;
+            c_sample.g = c_sample.g * intensity;
+            c_sample.b = c_sample.b * intensity;
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);

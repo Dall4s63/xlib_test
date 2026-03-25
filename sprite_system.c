@@ -113,8 +113,8 @@ FColor sprite_fsample(int id, double x, double y) {
     int iwidth = sprites[i].width;
     double width = (double)iwidth;
     double height = (double)sprites[i].height;
-    int row = (int)floor(width * x);
-    int col = (int)floor(height * y);
+    int col = (int)floor(width * x);
+    int row = (int)floor(height * y);
     return sprites[i].data[row * iwidth + col];
 }
 
