@@ -9,6 +9,7 @@
 #include "map_loader.h"
 
 static Image virtual_canvas;
+double *zbuffer;
 
 static double vp_dist = 0.25;
 // static double vp_width = 0.5;
@@ -17,7 +18,7 @@ static Camera cam = (Camera) {
     .pos = (DoubleVec2) { .x = 0.0, .y = 0.0 },
     .angle = 0.0,
     .fov = 100.0,
-    .height = 1.8
+    .height = 1.8,
 };
 
 static PointLight cam_light = (PointLight) {
@@ -29,7 +30,10 @@ static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.
 
 static MapRoom temp_room;
 
-Image debug_canvas;
+static SprObject *objs;
+static int objs_len;
+
+// Image debug_canvas;
 
 FColor get_plight_color(PointLight l, double dist);
 
@@ -43,14 +47,22 @@ int render_setup(int v_width, int v_height) {
         return 1;
     }
 
-    // TODO debug stuff
-    debug_canvas.width = v_width;
-    debug_canvas.height = v_height;
-    debug_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
+    zbuffer = malloc(sizeof(double) * v_width * v_height);
 
-    // TODO initialise the room
+    // TODO debug stuff
+    // debug_canvas.width = v_width;
+    // debug_canvas.height = v_height;
+    // debug_canvas.data = malloc(sizeof(char) * 4 * v_width * v_height);
 
     load_room("assets/rooms/test.room", &temp_room);
+
+    objs_len = 1;
+    objs = malloc(sizeof(SprObject) * objs_len);
+    objs[0].pos.x = 0.0;
+    objs[0].pos.y = 0.0;
+    objs[0].width = 1.0;
+    objs[0].height = 1.5;
+
 
     return 0;
 }
@@ -98,14 +110,15 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
 }
 
 void render_run(Image canvas) {
-    memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
-    // memset(canvas, 0, canvas_width * canvas_height * 4);
+    // memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
+    memset(canvas.data, 0, sizeof(char) * canvas.width * canvas.height * 4);
+    memset(zbuffer, 0, sizeof(double) * virtual_canvas.width * virtual_canvas.height);
     // printf("w: %d, h: %d\n", canvas_width, canvas_height);
 
     // TODO debug stuff
-    double debug_xoff = 60.0;
-    double debug_yoff = 60.0;
-    double debug_sf = 3.0;
+    // double debug_xoff = 60.0;
+    // double debug_yoff = 60.0;
+    // double debug_sf = 3.0;
 
     // TODO fix this
     // double vp_dist = (vp_width/2) / tan(cam.fov * M_PI / (180.0 * 2.0));
@@ -117,6 +130,63 @@ void render_run(Image canvas) {
     {
     double aspect_ratio = vc_height / vc_width;
     vp_height = vp_width * aspect_ratio;
+    }
+
+    /*
+     * PLAN: 
+     *  - Find the vector from the camera to the middle of the viewport
+     *    and rotate it to the camera direction.
+     *  - For each sprite object:
+     *      - Find the vector to the sprite coordinates and find 
+     *        the angle between the camera vector and the 
+     *        sprite vector. If the angle is greater than 90, 
+     *        we can disregard the sprite. (This implies a maximum 
+     *        fov of 180.)
+     *      - Use the vector to the center of the sprite to 
+     *        map it onto into virtual canvas space, using 
+     *        the dtp/distance ratio to scale the width and height
+     *        into screen coordinates.
+     *      - For each pixel, draw it to the buffer if it falls within 
+     *        0,0 to vc_width,vc_height, and write the sprite distance 
+     *        to the zbuffer.
+     *
+     *   Now when you are drawing walls, before you write a pixel, 
+     *   check the zbuffer and if the wall is closer than the distance 
+     *   in the zbuffer draw the wall pixel.
+     */
+
+    for (int i = 0; i < objs_len; ++i) {
+        DoubleVec2 to_obj = vec_sub(objs[i].pos, cam.pos);
+        // TODO threshold values
+        if (to_obj.x == 0.0 && to_obj.y == 0.0) {
+            continue;
+        }
+        to_obj = vec_rotate(to_obj, -cam.angle);
+        DoubleVec2 cam_dir = (DoubleVec2) { .x = 0.0, .y = vp_dist };
+        double a = fabs(vec_angle(cam_dir, to_obj)) * 180 / M_PI;
+        // printf("a: %lf\n", a);
+        if (a > 90.0) {
+            continue;
+        }
+        DoubleVec2 vp_dir = (DoubleVec2) { .x = 1.0, .y = 0.0};
+        DoubleRay spr_ray;
+        spr_ray.dir = to_obj;
+        spr_ray.origin = cam.pos;
+        DoubleRay vp_ray;
+        vp_ray.dir = vp_dir;
+        vp_ray.origin = vec_add(cam_dir, cam.pos);
+        DoubleVec2 inp;
+        bool res = double_ray_intersect(vp_ray, spr_ray, &inp);
+        inp = vec_sub(inp, cam.pos);
+        // printf("inp: (%lf, %lf)\n", inp.x, inp.y);
+        double dtp = vec_mag(inp);
+        double dist = vec_mag(to_obj);
+        // TODO figure out if there is a more elegant solution
+        if (dist < dtp) { continue; }
+        double ratio = dtp / dist;
+        double height = objs[i].height * ratio / vp_height * vc_height;
+        double width = objs[i].width * ratio / vp_height * vc_height;
+        printf("height: %lf, width: %lf\n", height, width);
     }
 
     double col = 0.0;

@@ -23,6 +23,13 @@ typedef struct _point_light {
     double r;
 } PointLight;
 
+typedef struct _spr_object {
+    DoubleVec2 pos;
+    double width;
+    double height;
+    int spr;
+} SprObject;
+
 typedef struct _map_wall {
     DoubleVec2 a;
     DoubleVec2 b;

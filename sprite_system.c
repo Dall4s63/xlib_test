@@ -9,6 +9,14 @@
 
 #define INIT_LEN 60
 
+static double min(double a, double b) {
+    return (a < b) ? a : b;
+}
+
+static double max(double a, double b) {
+    return (a > b) ? a : b;
+}
+
 /*
  * NOTE i want the color operations to assume 
  * premultiplied alpha
@@ -19,12 +27,9 @@ FColor fcolor_mul(FColor a, FColor b) {
     new.r = a.r * b.r;
     new.g = a.g * b.g;
     new.b = a.b * b.b;
+    new.a = max(a.a, b.a);
 
     return new;
-}
-
-static double min(double a, double b) {
-    return (a < b) ? a : b;
 }
 
 FColor fcolor_add(FColor a, FColor b) {
@@ -33,6 +38,7 @@ FColor fcolor_add(FColor a, FColor b) {
     new.r = min(a.r + b.r, 1.0);
     new.g = min(a.g + b.g, 1.0);
     new.b = min(a.b + b.b, 1.0);
+    new.a = min(a.a + b.a, 1.0);
 
     return new;
 }
