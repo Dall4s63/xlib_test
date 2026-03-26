@@ -109,6 +109,14 @@ static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
     }
 }
 
+static int imin(int a, int b) {
+    return (a < b) ? a : b;
+}
+
+static int imax(int a, int b) {
+    return (a > b) ? a : b;
+}
+
 void render_run(Image canvas) {
     // memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
     memset(canvas.data, 0, sizeof(char) * canvas.width * canvas.height * 4);
@@ -184,9 +192,33 @@ void render_run(Image canvas) {
         // TODO figure out if there is a more elegant solution
         if (dist < dtp) { continue; }
         double ratio = dtp / dist;
-        double height = objs[i].height * ratio / vp_height * vc_height;
-        double width = objs[i].width * ratio / vp_height * vc_height;
-        printf("height: %lf, width: %lf\n", height, width);
+        double height = objs[i].height * ratio / vp_width * vc_width;
+        double top_lim = ((cam.height - objs[i].height) * ratio / vp_height + 0.5) * vc_height;
+        int blim = (int)((cam.height * ratio / vp_height + 0.5) * vc_height);
+        int tlim = (int)top_lim;
+        double width = objs[i].width * ratio / vp_width * vc_width;
+        double left_lim = -width / 2.0 + inp.x / vp_width * vc_width;
+        int llim = (int)left_lim;
+        int rlim = (int)(width / 2.0 + inp.x / vp_width * vc_width);
+        printf("%d, %d\n", imin(rlim, virtual_canvas.width - 1), imin(blim, virtual_canvas.height - 1));
+        for (int x = imax(llim, 0); x < imin(rlim, virtual_canvas.width - 1); ++x) {
+            double dx = ((double)x - left_lim) / width;
+            // printf("dx: %lf\n", dx);
+            for (int y = imax(tlim, 0); y < imin(blim, virtual_canvas.height - 1); ++y) {
+                double dy = ((double)y - top_lim) / height;
+                FColor fc = sprite_fsample(objs[i].spr, dx, dy);
+                FColor lc = get_plight_color(cam_light, dist);
+                lc = fcolor_add(lc, global_illum);
+                fc = fcolor_mul(lc, fc);
+                char c[4];
+                c[0] = (unsigned char)(fc.r * 255);
+                c[1] = (unsigned char)(fc.g * 255);
+                c[2] = (unsigned char)(fc.b * 255);
+                c[3] = (unsigned char)(fc.a * 255);
+                set_pixel(virtual_canvas, y, x, c);
+                zbuffer[y * virtual_canvas.width + x] = dist;
+            }
+        }
     }
 
     double col = 0.0;
@@ -314,6 +346,10 @@ void render_run(Image canvas) {
             c[1] = (unsigned char)(c_sample.g * 255);
             c[2] = (unsigned char)(c_sample.b * 255);
             c[3] = (unsigned char)(c_sample.a * 255);
+            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            if (distance > z && z > 0.0) {
+                continue;
+            }
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
