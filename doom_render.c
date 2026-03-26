@@ -299,18 +299,15 @@ double cam_angle_add(double a) {
 
 FColor get_plight_color(PointLight l, double dist) {
     double step = l.r / 6.0;
-    double base = l.r * 2.0 / 3.0;
-    double dc = l.r + base;
+    double dc = l.r;
     double ri = 0.0;
 
-    for (; dc > base; dc -= step) {
+    for (; dc > 0.0; dc -= step) {
         if (dist <= dc) {
-            double r = (dc - base) / step;
+            double r = dc / step;
             ri = 1.0 / r;
         }
     }
-
-    if (dist < base) { ri = 1.0; }
 
     return (FColor) {
         .r = l.c.r * ri,
@@ -319,21 +316,4 @@ FColor get_plight_color(PointLight l, double dist) {
         .a = l.c.a * ri,
     };
 }
-
-// FColor get_plight_color(PointLight l, double dist) {
-//     double t = dist + sqrt(l.i);
-//     double ri = l.i / (t * t);
-//     // double ri = l.i / (dist * dist);
-//     ri = ri * 5.0;
-//     ri = ceil(ri);
-//     ri = ri / 5.0;
-// 
-//     if (ri > 1.0) { ri = 1.0; }
-//     return (FColor) {
-//         .r = l.c.r * ri,
-//         .g = l.c.g * ri,
-//         .b = l.c.b * ri,
-//         .a = l.c.a * ri,
-//     };
-// }
 
