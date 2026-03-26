@@ -20,7 +20,7 @@ typedef struct _camera {
 
 typedef struct _point_light {
     FColor c;
-    double i;
+    double r;
 } PointLight;
 
 typedef struct _map_wall {

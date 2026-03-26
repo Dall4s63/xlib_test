@@ -21,8 +21,8 @@ static Camera cam = (Camera) {
 };
 
 static PointLight cam_light = (PointLight) {
-    .c = (FColor) { .r = 1.0, .g = 0.6, .b = 0.05, .a = 1.0 },
-    .i = 70.0,
+    .c = (FColor) { .r = 1.0, .g = 1.0, .b = 1.0, .a = 1.0 },
+    .r = 6.0,
 };
 
 static MapRoom temp_room;
@@ -298,14 +298,20 @@ double cam_angle_add(double a) {
 }
 
 FColor get_plight_color(PointLight l, double dist) {
-    double t = dist + sqrt(l.i);
-    double ri = l.i / (t * t);
-    // double ri = l.i / (dist * dist);
-    ri = ri * 5.0;
-    ri = ceil(ri);
-    ri = ri / 5.0;
+    double step = l.r / 6.0;
+    double base = l.r * 2.0 / 3.0;
+    double dc = l.r + base;
+    double ri = 0.0;
 
-    if (ri > 1.0) { ri = 1.0; }
+    for (; dc > base; dc -= step) {
+        if (dist <= dc) {
+            double r = (dc - base) / step;
+            ri = 1.0 / r;
+        }
+    }
+
+    if (dist < base) { ri = 1.0; }
+
     return (FColor) {
         .r = l.c.r * ri,
         .g = l.c.g * ri,
@@ -313,4 +319,21 @@ FColor get_plight_color(PointLight l, double dist) {
         .a = l.c.a * ri,
     };
 }
+
+// FColor get_plight_color(PointLight l, double dist) {
+//     double t = dist + sqrt(l.i);
+//     double ri = l.i / (t * t);
+//     // double ri = l.i / (dist * dist);
+//     ri = ri * 5.0;
+//     ri = ceil(ri);
+//     ri = ri / 5.0;
+// 
+//     if (ri > 1.0) { ri = 1.0; }
+//     return (FColor) {
+//         .r = l.c.r * ri,
+//         .g = l.c.g * ri,
+//         .b = l.c.b * ri,
+//         .a = l.c.a * ri,
+//     };
+// }
 
