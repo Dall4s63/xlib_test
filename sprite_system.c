@@ -23,6 +23,20 @@ FColor fcolor_mul(FColor a, FColor b) {
     return new;
 }
 
+static double min(double a, double b) {
+    return (a < b) ? a : b;
+}
+
+FColor fcolor_add(FColor a, FColor b) {
+    FColor new;
+
+    new.r = min(a.r + b.r, 1.0);
+    new.g = min(a.g + b.g, 1.0);
+    new.b = min(a.b + b.b, 1.0);
+
+    return new;
+}
+
 typedef struct _sprite {
     FColor *data;
     int width;

@@ -23,5 +23,6 @@ FColor sprite_fsample(int id, double x, double y);
 FColor sprite_sample(int id, int x, int y);
 
 FColor fcolor_mul(FColor a, FColor b);
+FColor fcolor_add(FColor a, FColor b);
 
 #endif

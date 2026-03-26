@@ -21,9 +21,11 @@ static Camera cam = (Camera) {
 };
 
 static PointLight cam_light = (PointLight) {
-    .c = (FColor) { .r = 1.0, .g = 1.0, .b = 1.0, .a = 1.0 },
+    .c = (FColor) { .r = 1.0, .g = 0.9, .b = 0.85, .a = 1.0 },
     .r = 6.0,
 };
+
+static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
 
 static MapRoom temp_room;
 
@@ -205,7 +207,9 @@ void render_run(Image canvas) {
                 sampley += 1.0;
             }
             FColor c_sample = sprite_fsample(temp_room.ceil_spr, samplex, sampley);
-            c_sample = fcolor_mul(get_plight_color(cam_light, ldist), c_sample);
+            FColor lc = get_plight_color(cam_light, ldist);
+            lc = fcolor_add(lc, global_illum);
+            c_sample = fcolor_mul(lc, c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -232,7 +236,9 @@ void render_run(Image canvas) {
                 sampley = 0.0;
             }
             FColor c_sample = sprite_fsample(temp_room.walls[wall_i].spr, samplex, sampley);
-            c_sample = fcolor_mul(get_plight_color(cam_light, ldist), c_sample);
+            FColor lc = get_plight_color(cam_light, ldist);
+            lc = fcolor_add(lc, global_illum);
+            c_sample = fcolor_mul(lc, c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
@@ -262,7 +268,9 @@ void render_run(Image canvas) {
                 sampley += 1.0;
             }
             FColor c_sample = sprite_fsample(temp_room.floor_spr, samplex, sampley);
-            c_sample = fcolor_mul(get_plight_color(cam_light, ldist), c_sample);
+            FColor lc = get_plight_color(cam_light, ldist);
+            lc = fcolor_add(lc, global_illum);
+            c_sample = fcolor_mul(lc, c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
