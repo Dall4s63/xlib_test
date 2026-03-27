@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall
+CFLAGS = -Wall --debug
 LDFLAGS = -lX11 -lXext -lm
 SHELL = /bin/zsh
 
@@ -13,12 +13,12 @@ depends = $(patsubst %.c,%.d,$(sources))
 .PHONY: all clean
 
 all: $(objects)
-	$(CC) $(CFLAGS) $^ --debug -o bin/main $(LDFLAGS)
+	$(CC) $(CFLAGS) $^ -o bin/main $(LDFLAGS)
 
 -include $(depends)
 
 bin/%.o: %.c Makefile
-	$(CC) $(CFLAGS) -MMD -MP --debug -c $< -o $@
+	$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
 
 # 
 # all: $(objects) 
