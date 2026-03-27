@@ -26,8 +26,8 @@ static PointLight cam_light = (PointLight) {
     .r = 9.0,
 };
 
-static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
-// static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
+// static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
+static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
 
 static MapRoom temp_room;
 
@@ -60,8 +60,8 @@ int render_setup(int v_width, int v_height) {
     objs_len = 3;
     objs = malloc(sizeof(SprObject) * objs_len);
     objs[0].spr = sprite_new("assets/mushroom.qoi");
-    objs[0].pos.x = 0.0;
-    objs[0].pos.y = 0.0;
+    objs[0].pos.x = 9;
+    objs[0].pos.y = 10.5;
     objs[0].width = 1.2;
     objs[0].height = 1.8;
     objs[1].spr = sprite_new("assets/mushroom.qoi");
