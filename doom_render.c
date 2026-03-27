@@ -26,8 +26,8 @@ static PointLight cam_light = (PointLight) {
     .r = 6.0,
 };
 
-// static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
-static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
+static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
+// static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
 
 static MapRoom temp_room;
 
