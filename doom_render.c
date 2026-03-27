@@ -23,7 +23,7 @@ static Camera cam = (Camera) {
 
 static PointLight cam_light = (PointLight) {
     .c = (FColor) { .r = 1.0, .g = 0.9, .b = 0.85, .a = 1.0 },
-    .r = 6.0,
+    .r = 9.0,
 };
 
 static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
@@ -461,7 +461,7 @@ FColor get_plight_color(PointLight l, double dist) {
     for (; dc > 0.0; dc -= step) {
         if (dist <= dc) {
             double r = dc / step;
-            ri = 1.0 / r;
+            ri = 1.0 / (r * r);
         }
     }
 
