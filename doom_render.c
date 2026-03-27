@@ -26,7 +26,8 @@ static PointLight cam_light = (PointLight) {
     .r = 6.0,
 };
 
-static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
+// static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
+static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
 
 static MapRoom temp_room;
 
@@ -58,6 +59,7 @@ int render_setup(int v_width, int v_height) {
 
     objs_len = 1;
     objs = malloc(sizeof(SprObject) * objs_len);
+    objs[0].spr = sprite_new("assets/mushroom.qoi");
     objs[0].pos.x = 0.0;
     objs[0].pos.y = 0.0;
     objs[0].width = 1.0;
@@ -73,6 +75,15 @@ static void set_pixel_inv(Image canvas, int row, int col, char c[4]) {
     canvas.data[i + 1] = c[1];
     canvas.data[i + 2] = c[2];
     canvas.data[i + 3] = c[3];
+}
+
+static void get_pixel(Image canvas, int row, int col, char c[4]) {
+    int i = (row * canvas.width + col) * 4;
+    // TODO lsb vs msb
+    c[2] = canvas.data[i + 0];
+    c[1] = canvas.data[i + 1];
+    c[0] = canvas.data[i + 2];
+    c[3] = canvas.data[i + 3];
 }
 
 static void set_pixel(Image canvas, int row, int col, char c[4]) {
@@ -115,6 +126,10 @@ static int imin(int a, int b) {
 
 static int imax(int a, int b) {
     return (a > b) ? a : b;
+}
+
+static bool is_almost(double a, double b) {
+    return b-1e-12 <= a && a <= b+1e-12;
 }
 
 void render_run(Image canvas) {
@@ -166,7 +181,7 @@ void render_run(Image canvas) {
     for (int i = 0; i < objs_len; ++i) {
         DoubleVec2 to_obj = vec_sub(objs[i].pos, cam.pos);
         // TODO threshold values
-        if (to_obj.x == 0.0 && to_obj.y == 0.0) {
+        if (is_almost(to_obj.x, 0.0) && is_almost(to_obj.y, 0.0)) {
             continue;
         }
         to_obj = vec_rotate(to_obj, -cam.angle);
@@ -197,10 +212,9 @@ void render_run(Image canvas) {
         int blim = (int)((cam.height * ratio / vp_height + 0.5) * vc_height);
         int tlim = (int)top_lim;
         double width = objs[i].width * ratio / vp_width * vc_width;
-        double left_lim = -width / 2.0 + inp.x / vp_width * vc_width;
+        double left_lim = -width / 2.0 + (inp.x / vp_width + 0.5) * vc_width;
         int llim = (int)left_lim;
-        int rlim = (int)(width / 2.0 + inp.x / vp_width * vc_width);
-        printf("%d, %d\n", imin(rlim, virtual_canvas.width - 1), imin(blim, virtual_canvas.height - 1));
+        int rlim = (int)(width / 2.0 + (inp.x / vp_width + 0.5) * vc_width);
         for (int x = imax(llim, 0); x < imin(rlim, virtual_canvas.width - 1); ++x) {
             double dx = ((double)x - left_lim) / width;
             // printf("dx: %lf\n", dx);
@@ -208,8 +222,16 @@ void render_run(Image canvas) {
                 double dy = ((double)y - top_lim) / height;
                 FColor fc = sprite_fsample(objs[i].spr, dx, dy);
                 FColor lc = get_plight_color(cam_light, dist);
+                // if (fc.a > 0.0) {
+                //     printf("\n");
+                //     printf("fc.a: %lf\n", fc.a);
+                // }
                 lc = fcolor_add(lc, global_illum);
                 fc = fcolor_mul(lc, fc);
+                // if (fc.a > 0.0) {
+                //     printf("lc.a: %lf\n", lc.a);
+                //     printf("fc.a: %lf\n", fc.a);
+                // }
                 char c[4];
                 c[0] = (unsigned char)(fc.r * 255);
                 c[1] = (unsigned char)(fc.g * 255);
@@ -313,6 +335,13 @@ void render_run(Image canvas) {
             lc = fcolor_add(lc, global_illum);
             c_sample = fcolor_mul(lc, c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            if (z > 0.0) {
+                unsigned char ca[4];
+                get_pixel(virtual_canvas, row_i, column_i, ca);
+                FColor a = fcolor_from(ca);
+                c_sample = fcolor_over(a, c_sample);
+            }
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
             c[2] = (unsigned char)(c_sample.b * 255);
@@ -342,14 +371,17 @@ void render_run(Image canvas) {
             lc = fcolor_add(lc, global_illum);
             c_sample = fcolor_mul(lc, c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            if (distance > z && z > 0.0) {
+                unsigned char ca[4];
+                get_pixel(virtual_canvas, row_i, column_i, ca);
+                FColor a = fcolor_from(ca);
+                c_sample = fcolor_over(a, c_sample);
+            }
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
             c[2] = (unsigned char)(c_sample.b * 255);
             c[3] = (unsigned char)(c_sample.a * 255);
-            double z = zbuffer[row_i * virtual_canvas.width + column_i];
-            if (distance > z && z > 0.0) {
-                continue;
-            }
             set_pixel(virtual_canvas, row_i, column_i, c);
         }
 
@@ -378,6 +410,13 @@ void render_run(Image canvas) {
             lc = fcolor_add(lc, global_illum);
             c_sample = fcolor_mul(lc, c_sample);
             // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            if (z > 0.0) {
+                unsigned char ca[4];
+                get_pixel(virtual_canvas, row_i, column_i, ca);
+                FColor a = fcolor_from(ca);
+                c_sample = fcolor_over(a, c_sample);
+            }
             c[0] = (unsigned char)(c_sample.r * 255);
             c[1] = (unsigned char)(c_sample.g * 255);
             c[2] = (unsigned char)(c_sample.b * 255);

@@ -22,7 +22,9 @@ int sprite_height(int id);
 FColor sprite_fsample(int id, double x, double y);
 FColor sprite_sample(int id, int x, int y);
 
+FColor fcolor_from(unsigned char c[4]);
 FColor fcolor_mul(FColor a, FColor b);
 FColor fcolor_add(FColor a, FColor b);
+FColor fcolor_over(FColor a, FColor b);
 
 #endif

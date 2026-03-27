@@ -17,6 +17,17 @@ static double max(double a, double b) {
     return (a > b) ? a : b;
 }
 
+FColor fcolor_from(unsigned char c[4]) {
+    FColor new;
+
+    new.r = (double)c[0] / 255.0;
+    new.g = (double)c[1] / 255.0;
+    new.b = (double)c[2] / 255.0;
+    new.a = (double)c[3] / 255.0;
+
+    return new;
+}
+
 /*
  * NOTE i want the color operations to assume 
  * premultiplied alpha
@@ -27,7 +38,7 @@ FColor fcolor_mul(FColor a, FColor b) {
     new.r = a.r * b.r;
     new.g = a.g * b.g;
     new.b = a.b * b.b;
-    new.a = max(a.a, b.a);
+    new.a = b.a;
 
     return new;
 }
@@ -39,6 +50,17 @@ FColor fcolor_add(FColor a, FColor b) {
     new.g = min(a.g + b.g, 1.0);
     new.b = min(a.b + b.b, 1.0);
     new.a = min(a.a + b.a, 1.0);
+
+    return new;
+}
+
+FColor fcolor_over(FColor a, FColor b) {
+    FColor new;
+
+    new.r = min(a.r + b.r * (1.0 - a.a), 1.0);
+    new.g = min(a.g + b.g * (1.0 - a.a), 1.0);
+    new.b = min(a.b + b.b * (1.0 - a.a), 1.0);
+    new.a = min(a.a + b.a * (1.0 - a.a), 1.0);
 
     return new;
 }

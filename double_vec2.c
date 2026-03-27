@@ -42,7 +42,7 @@ DoubleVec2 vec_rotate(DoubleVec2 a, double angle) {
     };
 }
 
-bool is_almost(double a, double b) {
+static bool is_almost(double a, double b) {
     return b-1e-12 <= a && a <= b+1e-12;
 }
 
