@@ -16,7 +16,7 @@ STOIHashMap stoi_hash_new(void) {
     }
     memset(out.values, 0, sizeof(STOIHashUnit) * HASH_BUF_LEN);
     for (int i = 0; i < HASH_BUF_LEN; ++i) {
-        out.values[i].string == NULL;
+        out.values[i].string = NULL;
     }
     return out;
 }
