@@ -57,13 +57,23 @@ int render_setup(int v_width, int v_height) {
 
     load_room("assets/rooms/test.room", &temp_room);
 
-    objs_len = 1;
+    objs_len = 3;
     objs = malloc(sizeof(SprObject) * objs_len);
     objs[0].spr = sprite_new("assets/mushroom.qoi");
     objs[0].pos.x = 0.0;
     objs[0].pos.y = 0.0;
-    objs[0].width = 1.0;
-    objs[0].height = 1.5;
+    objs[0].width = 1.2;
+    objs[0].height = 1.8;
+    objs[1].spr = sprite_new("assets/mushroom.qoi");
+    objs[1].pos.x = 1.5;
+    objs[1].pos.y = 1.5;
+    objs[1].width = 1.0;
+    objs[1].height = 1.5;
+    objs[2].spr = sprite_new("assets/mushroom.qoi");
+    objs[2].pos.x = -1.5;
+    objs[2].pos.y = -1.5;
+    objs[2].width = 0.8;
+    objs[2].height = 1.2;
 
 
     return 0;
@@ -155,29 +165,6 @@ void render_run(Image canvas) {
     vp_height = vp_width * aspect_ratio;
     }
 
-    /*
-     * PLAN: 
-     *  - Find the vector from the camera to the middle of the viewport
-     *    and rotate it to the camera direction.
-     *  - For each sprite object:
-     *      - Find the vector to the sprite coordinates and find 
-     *        the angle between the camera vector and the 
-     *        sprite vector. If the angle is greater than 90, 
-     *        we can disregard the sprite. (This implies a maximum 
-     *        fov of 180.)
-     *      - Use the vector to the center of the sprite to 
-     *        map it onto into virtual canvas space, using 
-     *        the dtp/distance ratio to scale the width and height
-     *        into screen coordinates.
-     *      - For each pixel, draw it to the buffer if it falls within 
-     *        0,0 to vc_width,vc_height, and write the sprite distance 
-     *        to the zbuffer.
-     *
-     *   Now when you are drawing walls, before you write a pixel, 
-     *   check the zbuffer and if the wall is closer than the distance 
-     *   in the zbuffer draw the wall pixel.
-     */
-
     for (int i = 0; i < objs_len; ++i) {
         DoubleVec2 to_obj = vec_sub(objs[i].pos, cam.pos);
         // TODO threshold values
@@ -232,13 +219,29 @@ void render_run(Image canvas) {
                 //     printf("lc.a: %lf\n", lc.a);
                 //     printf("fc.a: %lf\n", fc.a);
                 // }
+                double z = zbuffer[y * virtual_canvas.width + x];
+                if (z > 0.0 && dist < z) {
+                    // this pixel is over 
+                    unsigned char ca[4];
+                    get_pixel(virtual_canvas, y, x, ca);
+                    FColor a = fcolor_from(ca);
+                    fc = fcolor_over(fc, a);
+                    zbuffer[y * virtual_canvas.width + x] = dist;
+                } else if (z > 0.0) {
+                    // this pixel is under
+                    unsigned char ca[4];
+                    get_pixel(virtual_canvas, y, x, ca);
+                    FColor a = fcolor_from(ca);
+                    fc = fcolor_over(a, fc);
+                } else {
+                    zbuffer[y * virtual_canvas.width + x] = dist;
+                }
                 char c[4];
                 c[0] = (unsigned char)(fc.r * 255);
                 c[1] = (unsigned char)(fc.g * 255);
                 c[2] = (unsigned char)(fc.b * 255);
                 c[3] = (unsigned char)(fc.a * 255);
                 set_pixel(virtual_canvas, y, x, c);
-                zbuffer[y * virtual_canvas.width + x] = dist;
             }
         }
     }
