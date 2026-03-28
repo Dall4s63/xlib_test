@@ -21,6 +21,8 @@ static Camera cam = (Camera) {
     .height = 1.8,
 };
 
+static bool state_update = true;
+
 static PointLight cam_light = (PointLight) {
     .c = (FColor) { .r = 1.0, .g = 0.9, .b = 0.85, .a = 1.0 },
     .r = 12.0,
@@ -146,6 +148,10 @@ static bool is_almost(double a, double b) {
 }
 
 void render_run(Image canvas) {
+    if (!state_update) {
+        return;
+    }
+    state_update = false;
     // memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
     memset(canvas.data, 0, sizeof(char) * canvas.width * canvas.height * 4);
     memset(zbuffer, 0, sizeof(double) * virtual_canvas.width * virtual_canvas.height);
@@ -205,10 +211,16 @@ void render_run(Image canvas) {
         double left_lim = -width / 2.0 + (inp.x / vp_width + 0.5) * vc_width;
         int llim = (int)left_lim;
         int rlim = (int)(width / 2.0 + (inp.x / vp_width + 0.5) * vc_width);
-        for (int x = imax(llim, 0); x < imin(rlim, virtual_canvas.width - 1); ++x) {
+        // int count = 0;
+        int left_pixel = imax(llim, 0);
+        int right_pixel = imin(rlim, virtual_canvas.width - 1);
+        int top_pixel = imax(tlim, 0);
+        int bot_pixel = imin(blim, virtual_canvas.height - 1);
+        // printf("l: %d, r: %d, t: %d, b: %d\n", left_pixel, right_pixel, top_pixel, bot_pixel);
+        for (int x = left_pixel; x <= right_pixel; ++x) {
             double dx = ((double)x - left_lim) / width;
             // printf("dx: %lf\n", dx);
-            for (int y = imax(tlim, 0); y < imin(blim, virtual_canvas.height - 1); ++y) {
+            for (int y = top_pixel; y <= bot_pixel; ++y) {
                 double dy = ((double)y - top_lim) / height;
                 FColor fc = sprite_fsample(objs[i].spr, dx, dy);
                 FColor lc = get_plight_color(cam_light, dist);
@@ -237,8 +249,10 @@ void render_run(Image canvas) {
                 c[2] = (unsigned char)(fc.b * 255);
                 c[3] = (unsigned char)(fc.a * 255);
                 set_pixel(virtual_canvas, y, x, c);
+                // count++;
             }
         }
+        // printf("count: %d\n", count);
     }
 
     double col = 0.0;
@@ -437,6 +451,7 @@ void render_run(Image canvas) {
 }
 
 DoubleVec2 cam_pos_add(DoubleVec2 v) {
+    state_update = true;
     return (DoubleVec2) {
         .x = cam.pos.x += v.x,
         .y = cam.pos.y += v.y,
@@ -444,6 +459,7 @@ DoubleVec2 cam_pos_add(DoubleVec2 v) {
 }
 
 double cam_angle_add(double a) {
+    state_update = true;
     return cam.angle += a;
 }
 

@@ -87,10 +87,10 @@ int main(void) {
     struct timespec end;
     struct timespec diff;
     struct timespec rem;
-    struct timespec frame_time;
-    frame_time.tv_sec = 0;
-    frame_time.tv_nsec = 1000000000 / fps;
-    double dt = (double)frame_time.tv_nsec / 1.0e10;
+    struct timespec target_frame_time;
+    target_frame_time.tv_sec = 0;
+    target_frame_time.tv_nsec = 1000000000 / fps;
+    double dt = (double)target_frame_time.tv_nsec / 1.0e10;
 
     while (!window_closed) {
         clock_gettime(CLOCK_REALTIME, &start);
@@ -107,7 +107,10 @@ int main(void) {
         // handle_events(&callbacks);
         clock_gettime(CLOCK_REALTIME, &end);
         diff = timespec_sub(end, start);
-        rem = timespec_sub(frame_time, diff);
+        rem = timespec_sub(target_frame_time, diff);
+        // if (rem.tv_nsec < 0 || rem.tv_sec < 0) {
+        //     printf("frame overtime!\n");
+        // }
         nanosleep(&rem, NULL);
     }
 
