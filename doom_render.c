@@ -23,11 +23,11 @@ static Camera cam = (Camera) {
 
 static PointLight cam_light = (PointLight) {
     .c = (FColor) { .r = 1.0, .g = 0.9, .b = 0.85, .a = 1.0 },
-    .r = 9.0,
+    .r = 12.0,
 };
 
-// static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
-static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
+static FColor global_illum = (FColor) { .r = 0.04, .g = 0.04, .b = 0.04, .a = 0.04 };
+// static FColor global_illum = (FColor) { .r = 0.30, .g = 0.30, .b = 0.30, .a = 0.30 };
 
 static MapRoom temp_room;
 
@@ -48,7 +48,7 @@ int render_setup(int v_width, int v_height) {
         return 1;
     }
 
-    zbuffer = malloc(sizeof(double) * v_width * v_height);
+    zbuffer = malloc(sizeof(*zbuffer) * v_width * v_height);
 
     // TODO debug stuff
     // debug_canvas.width = v_width;
@@ -60,20 +60,23 @@ int render_setup(int v_width, int v_height) {
     objs_len = 3;
     objs = malloc(sizeof(SprObject) * objs_len);
     objs[0].spr = sprite_new("assets/mushroom.qoi");
-    objs[0].pos.x = 9;
-    objs[0].pos.y = 10.5;
-    objs[0].width = 1.2;
-    objs[0].height = 1.8;
+    objs[0].pos.x = 0.0;
+    objs[0].pos.y = 0.0;
+    objs[0].width = 3.0;
+    objs[0].height = 3.0;
+    objs[0].elev = 0.0;
     objs[1].spr = sprite_new("assets/mushroom.qoi");
     objs[1].pos.x = 1.5;
     objs[1].pos.y = 1.5;
     objs[1].width = 1.0;
-    objs[1].height = 1.5;
+    objs[1].height = 1.0;
+    objs[1].elev = 2.0;
     objs[2].spr = sprite_new("assets/mushroom.qoi");
     objs[2].pos.x = -1.5;
     objs[2].pos.y = -1.5;
-    objs[2].width = 0.8;
+    objs[2].width = 1.2;
     objs[2].height = 1.2;
+    objs[2].elev = 0.5;
 
 
     return 0;
@@ -87,7 +90,7 @@ static void set_pixel_inv(Image canvas, int row, int col, char c[4]) {
     canvas.data[i + 3] = c[3];
 }
 
-static void get_pixel(Image canvas, int row, int col, char c[4]) {
+static void get_pixel(Image canvas, int row, int col, unsigned char c[4]) {
     int i = (row * canvas.width + col) * 4;
     // TODO lsb vs msb
     c[2] = canvas.data[i + 0];
@@ -186,7 +189,7 @@ void render_run(Image canvas) {
         vp_ray.dir = vp_dir;
         vp_ray.origin = vec_add(cam_dir, cam.pos);
         DoubleVec2 inp;
-        bool res = double_ray_intersect(vp_ray, spr_ray, &inp);
+        double_ray_intersect(vp_ray, spr_ray, &inp);
         inp = vec_sub(inp, cam.pos);
         // printf("inp: (%lf, %lf)\n", inp.x, inp.y);
         double dtp = vec_mag(inp);
@@ -195,8 +198,8 @@ void render_run(Image canvas) {
         if (dist < dtp) { continue; }
         double ratio = dtp / dist;
         double height = objs[i].height * ratio / vp_width * vc_width;
-        double top_lim = ((cam.height - objs[i].height) * ratio / vp_height + 0.5) * vc_height;
-        int blim = (int)((cam.height * ratio / vp_height + 0.5) * vc_height);
+        double top_lim = ((cam.height - objs[i].height - objs[i].elev) * ratio / vp_height + 0.5) * vc_height;
+        int blim = (int)(((cam.height - objs[i].elev) * ratio / vp_height + 0.5) * vc_height);
         int tlim = (int)top_lim;
         double width = objs[i].width * ratio / vp_width * vc_width;
         double left_lim = -width / 2.0 + (inp.x / vp_width + 0.5) * vc_width;
@@ -209,16 +212,8 @@ void render_run(Image canvas) {
                 double dy = ((double)y - top_lim) / height;
                 FColor fc = sprite_fsample(objs[i].spr, dx, dy);
                 FColor lc = get_plight_color(cam_light, dist);
-                // if (fc.a > 0.0) {
-                //     printf("\n");
-                //     printf("fc.a: %lf\n", fc.a);
-                // }
                 lc = fcolor_add(lc, global_illum);
                 fc = fcolor_mul(lc, fc);
-                // if (fc.a > 0.0) {
-                //     printf("lc.a: %lf\n", lc.a);
-                //     printf("fc.a: %lf\n", fc.a);
-                // }
                 double z = zbuffer[y * virtual_canvas.width + x];
                 if (z > 0.0 && dist < z) {
                     // this pixel is over 
@@ -356,7 +351,6 @@ void render_run(Image canvas) {
             // wall
             double row = (double)row_i;
             char c[4];
-            DoubleVec2 spot;
             double dv = (row / vc_height - 0.5) * vp_height;
             dv = dv / flat_dtp * distance;
             double wall_ydist = temp_room.wall_height - cam.height + dv;
@@ -400,11 +394,11 @@ void render_run(Image canvas) {
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             double ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
             double _;
-            double samplex = modf(spot.x, &_);
+            double samplex = modf(spot.x * 0.25, &_);
             if (samplex < 0) {
                 samplex += 1.0;
             }
-            double sampley = modf(spot.y, &_);
+            double sampley = modf(spot.y * 0.25, &_);
             if (sampley < 0) {
                 sampley += 1.0;
             }

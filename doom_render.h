@@ -27,6 +27,7 @@ typedef struct _spr_object {
     DoubleVec2 pos;
     double width;
     double height;
+    double elev;
     int spr;
 } SprObject;
 
