@@ -9,21 +9,21 @@
 
 #define INIT_LEN 60
 
-static double min(double a, double b) {
+static float min(float a, float b) {
     return (a < b) ? a : b;
 }
 
-static double max(double a, double b) {
+static float max(float a, float b) {
     return (a > b) ? a : b;
 }
 
 FColor fcolor_from(unsigned char c[4]) {
     FColor new;
 
-    new.r = (double)c[0] / 255.0;
-    new.g = (double)c[1] / 255.0;
-    new.b = (double)c[2] / 255.0;
-    new.a = (double)c[3] / 255.0;
+    new.r = (float)c[0] / 255.0;
+    new.g = (float)c[1] / 255.0;
+    new.b = (float)c[2] / 255.0;
+    new.a = (float)c[3] / 255.0;
 
     return new;
 }
@@ -153,15 +153,15 @@ int sprite_height(int id) {
 }
 
 // x and y are between 0 and 1
-FColor sprite_fsample(int id, double x, double y) {
+FColor sprite_fsample(int id, float x, float y) {
     if (x < 0.0) { x = 0.0; }
     if (x > 1.0) { x = 1.0; }
     if (y < 0.0) { y = 0.0; }
     if (y > 1.0) { y = 1.0; }
     int i = sprites_i_to_id[id];
     int iwidth = sprites[i].width;
-    double width = (double)iwidth;
-    double height = (double)sprites[i].height;
+    float width = (float)iwidth;
+    float height = (float)sprites[i].height;
     int col = (int)floor(width * x);
     int row = (int)floor(height * y);
     return sprites[i].data[row * iwidth + col];

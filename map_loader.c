@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "map_loader.h"
-#include "double_vec2.h"
+#include "float_vec2.h"
 #include "sprite_system.h"
 
 /*
@@ -43,7 +43,7 @@ int load_room(char *filename, MapRoom *room) {
     }
     room->floor_spr = sprite_new(sfname);
     int nwalls;
-    double wall_height;
+    float wall_height;
     sscanf(line_buf, "#walls %d %lf\n", &nwalls, &wall_height);
     // printf("nwalls: %d %lf\n", nwalls, wall_height);
 
@@ -52,10 +52,10 @@ int load_room(char *filename, MapRoom *room) {
     room->walls_buf_len = nwalls;
     room->wall_height = wall_height;
 
-    double prev_b1 = 0.0, prev_b2 = 0.0;
+    float prev_b1 = 0.0, prev_b2 = 0.0;
     for (int i = 0; i < nwalls; ++i) {
         fgets(line_buf, MAX_LINE_LEN, f);
-        double a1, a2, b1, b2;
+        float a1, a2, b1, b2;
         if (line_buf[0] == '_') {
             a1 = prev_b1;
             a2 = prev_b2;

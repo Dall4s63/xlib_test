@@ -90,7 +90,7 @@ int main(void) {
     struct timespec target_frame_time;
     target_frame_time.tv_sec = 0;
     target_frame_time.tv_nsec = 1000000000 / fps;
-    double dt = (double)target_frame_time.tv_nsec / 1.0e10;
+    float dt = (float)target_frame_time.tv_nsec / 1.0e10;
 
     while (!window_closed) {
         clock_gettime(CLOCK_REALTIME, &start);

@@ -3,19 +3,19 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "double_vec2.h"
+#include "float_vec2.h"
 #include "doom_render.h"
 #include "sprite_system.h"
 #include "map_loader.h"
 
 static Image virtual_canvas;
-double *zbuffer;
+float *zbuffer;
 
-static double vp_dist = 0.25;
-// static double vp_width = 0.5;
+static float vp_dist = 0.25;
+// static float vp_width = 0.5;
 
 static Camera cam = (Camera) { 
-    .pos = (DoubleVec2) { .x = 0.0, .y = 0.0 },
+    .pos = (FloatVec2) { .x = 0.0, .y = 0.0 },
     .angle = 0.0,
     .fov = 100.0,
     .height = 1.8,
@@ -38,7 +38,7 @@ static int objs_len;
 
 // Image debug_canvas;
 
-FColor get_plight_color(PointLight l, double dist);
+FColor get_plight_color(PointLight l, float dist);
 
 int render_setup(int v_width, int v_height) {
     // spr_id = sprite_new("assets/frog.qoi");
@@ -110,12 +110,12 @@ static void set_pixel(Image canvas, int row, int col, char c[4]) {
     canvas.data[i + 3] = c[3];
 }
 
-static void draw_line(Image canvas, DoubleVec2 a, DoubleVec2 b, char c[4]) {
+static void draw_line(Image canvas, FloatVec2 a, FloatVec2 b, char c[4]) {
     // printf("drawing line from (%lf, %lf) to (%lf, %lf)\n",
     //     a.x, a.y, b.x, b.y);
-    double dx = b.x - a.x;
-    double dy = b.y - a.y;
-    double l_diff = abs((abs(dx) > abs(dy)) ? dx : dy);
+    float dx = b.x - a.x;
+    float dy = b.y - a.y;
+    float l_diff = abs((abs(dx) > abs(dy)) ? dx : dy);
     dx = dx / l_diff;
     dy = dy / l_diff;
     bool axl = a.x < b.x;
@@ -143,7 +143,7 @@ static int imax(int a, int b) {
     return (a > b) ? a : b;
 }
 
-static bool is_almost(double a, double b) {
+static bool is_almost(float a, float b) {
     return b-1e-12 <= a && a <= b+1e-12;
 }
 
@@ -154,61 +154,61 @@ void render_run(Image canvas) {
     state_update = false;
     // memset(debug_canvas.data, 0, debug_canvas.width * debug_canvas.height * 4);
     memset(canvas.data, 0, sizeof(char) * canvas.width * canvas.height * 4);
-    memset(zbuffer, 0, sizeof(double) * virtual_canvas.width * virtual_canvas.height);
+    memset(zbuffer, 0, sizeof(float) * virtual_canvas.width * virtual_canvas.height);
     // printf("w: %d, h: %d\n", canvas_width, canvas_height);
 
     // TODO debug stuff
-    // double debug_xoff = 60.0;
-    // double debug_yoff = 60.0;
-    // double debug_sf = 3.0;
+    // float debug_xoff = 60.0;
+    // float debug_yoff = 60.0;
+    // float debug_sf = 3.0;
 
     // TODO fix this
-    // double vp_dist = (vp_width/2) / tan(cam.fov * M_PI / (180.0 * 2.0));
+    // float vp_dist = (vp_width/2) / tan(cam.fov * M_PI / (180.0 * 2.0));
     // printf("%lf\n", vp_dist);
-    double vp_width = tan(cam.fov * M_PI / (180.0 * 2.0)) * vp_dist * 2;
-    double vc_width = (double) virtual_canvas.width;
-    double vc_height = (double) virtual_canvas.height;
-    double vp_height;
+    float vp_width = tan(cam.fov * M_PI / (180.0 * 2.0)) * vp_dist * 2;
+    float vc_width = (float) virtual_canvas.width;
+    float vc_height = (float) virtual_canvas.height;
+    float vp_height;
     {
-    double aspect_ratio = vc_height / vc_width;
+    float aspect_ratio = vc_height / vc_width;
     vp_height = vp_width * aspect_ratio;
     }
 
     for (int i = 0; i < objs_len; ++i) {
-        DoubleVec2 to_obj = vec_sub(objs[i].pos, cam.pos);
+        FloatVec2 to_obj = vec_sub(objs[i].pos, cam.pos);
         // TODO threshold values
         if (is_almost(to_obj.x, 0.0) && is_almost(to_obj.y, 0.0)) {
             continue;
         }
         to_obj = vec_rotate(to_obj, -cam.angle);
-        DoubleVec2 cam_dir = (DoubleVec2) { .x = 0.0, .y = vp_dist };
-        double a = fabs(vec_angle(cam_dir, to_obj)) * 180 / M_PI;
+        FloatVec2 cam_dir = (FloatVec2) { .x = 0.0, .y = vp_dist };
+        float a = fabs(vec_angle(cam_dir, to_obj)) * 180 / M_PI;
         // printf("a: %lf\n", a);
         if (a > 90.0) {
             continue;
         }
-        DoubleVec2 vp_dir = (DoubleVec2) { .x = 1.0, .y = 0.0};
-        DoubleRay spr_ray;
+        FloatVec2 vp_dir = (FloatVec2) { .x = 1.0, .y = 0.0};
+        FloatRay spr_ray;
         spr_ray.dir = to_obj;
         spr_ray.origin = cam.pos;
-        DoubleRay vp_ray;
+        FloatRay vp_ray;
         vp_ray.dir = vp_dir;
         vp_ray.origin = vec_add(cam_dir, cam.pos);
-        DoubleVec2 inp;
-        double_ray_intersect(vp_ray, spr_ray, &inp);
+        FloatVec2 inp;
+        float_ray_intersect(vp_ray, spr_ray, &inp);
         inp = vec_sub(inp, cam.pos);
         // printf("inp: (%lf, %lf)\n", inp.x, inp.y);
-        double dtp = vec_mag(inp);
-        double dist = vec_mag(to_obj);
+        float dtp = vec_mag(inp);
+        float dist = vec_mag(to_obj);
         // TODO figure out if there is a more elegant solution
         if (dist < dtp) { continue; }
-        double ratio = dtp / dist;
-        double height = objs[i].height * ratio / vp_width * vc_width;
-        double top_lim = ((cam.height - objs[i].height - objs[i].elev) * ratio / vp_height + 0.5) * vc_height;
+        float ratio = dtp / dist;
+        float height = objs[i].height * ratio / vp_width * vc_width;
+        float top_lim = ((cam.height - objs[i].height - objs[i].elev) * ratio / vp_height + 0.5) * vc_height;
         int blim = (int)(((cam.height - objs[i].elev) * ratio / vp_height + 0.5) * vc_height);
         int tlim = (int)top_lim;
-        double width = objs[i].width * ratio / vp_width * vc_width;
-        double left_lim = -width / 2.0 + (inp.x / vp_width + 0.5) * vc_width;
+        float width = objs[i].width * ratio / vp_width * vc_width;
+        float left_lim = -width / 2.0 + (inp.x / vp_width + 0.5) * vc_width;
         int llim = (int)left_lim;
         int rlim = (int)(width / 2.0 + (inp.x / vp_width + 0.5) * vc_width);
         // int count = 0;
@@ -218,15 +218,15 @@ void render_run(Image canvas) {
         int bot_pixel = imin(blim, virtual_canvas.height - 1);
         // printf("l: %d, r: %d, t: %d, b: %d\n", left_pixel, right_pixel, top_pixel, bot_pixel);
         for (int x = left_pixel; x <= right_pixel; ++x) {
-            double dx = ((double)x - left_lim) / width;
+            float dx = ((float)x - left_lim) / width;
             // printf("dx: %lf\n", dx);
             for (int y = top_pixel; y <= bot_pixel; ++y) {
-                double dy = ((double)y - top_lim) / height;
+                float dy = ((float)y - top_lim) / height;
                 FColor fc = sprite_fsample(objs[i].spr, dx, dy);
                 FColor lc = get_plight_color(cam_light, dist);
                 lc = fcolor_add(lc, global_illum);
                 fc = fcolor_mul(lc, fc);
-                double z = zbuffer[y * virtual_canvas.width + x];
+                float z = zbuffer[y * virtual_canvas.width + x];
                 if (z > 0.0 && dist < z) {
                     // this pixel is over 
                     unsigned char ca[4];
@@ -255,34 +255,34 @@ void render_run(Image canvas) {
         // printf("count: %d\n", count);
     }
 
-    double col = 0.0;
+    float col = 0.0;
     for (int column_i = 0; column_i < virtual_canvas.width; ++column_i, ++col) {
 
-        DoubleRay ray;
-        double vp_dwidth = (col / vc_width - 0.5) * vp_width;
+        FloatRay ray;
+        float vp_dwidth = (col / vc_width - 0.5) * vp_width;
         ray.dir.x = vp_dwidth;
         ray.dir.y = vp_dist;
         ray.dir = vec_normalize(ray.dir);
         ray.dir = vec_rotate(ray.dir, cam.angle);
         ray.origin = cam.pos;
         // TODO find a suitably large number
-        double distance = 100000.0;
+        float distance = 100000.0;
         int wall_i = -1;
-        // double flat_dtp = vp_dist;
-        double flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
-        double wall_xdist;
-        double wall_len;
+        // float flat_dtp = vp_dist;
+        float flat_dtp = sqrt(vp_dwidth * vp_dwidth + vp_dist * vp_dist);
+        float wall_xdist;
+        float wall_len;
 
         for (int i = 0; i < temp_room.walls_len; ++i) {
-            DoubleVec2 end_a = temp_room.walls[i].a;
-            DoubleVec2 end_b = temp_room.walls[i].b;
-            DoubleVec2 i_point;
-            bool res = double_ray_in_segment(ray, end_a, end_b, &i_point);
+            FloatVec2 end_a = temp_room.walls[i].a;
+            FloatVec2 end_b = temp_room.walls[i].b;
+            FloatVec2 i_point;
+            bool res = float_ray_in_segment(ray, end_a, end_b, &i_point);
             if (!res) {
                 continue;
             }
-            DoubleVec2 vec = (DoubleVec2) { .x = i_point.x - cam.pos.x, .y = i_point.y - cam.pos.y };
-            double d = sqrt(vec.x * vec.x + vec.y * vec.y);
+            FloatVec2 vec = (FloatVec2) { .x = i_point.x - cam.pos.x, .y = i_point.y - cam.pos.y };
+            float d = sqrt(vec.x * vec.x + vec.y * vec.y);
             if (d < distance && d > flat_dtp) {
                 distance = d;
                 wall_i = i;
@@ -298,9 +298,9 @@ void render_run(Image canvas) {
         int wall_top;
         int wall_bot;
         {
-        double wall_above_cam = temp_room.wall_height - cam.height;
-        double wall_below_cam = cam.height;
-        double swh = wall_above_cam / distance * flat_dtp;
+        float wall_above_cam = temp_room.wall_height - cam.height;
+        float wall_below_cam = cam.height;
+        float swh = wall_above_cam / distance * flat_dtp;
         // wall_top = (int)((swh / vp_height + 0.5) * vc_height) - 1; 
         // wall_top = (int)((0.5 - swh / vp_height) * vc_height) + 1; 
         wall_top = (int)((0.5 - swh / vp_height) * vc_height); 
@@ -322,23 +322,23 @@ void render_run(Image canvas) {
         }
 
         int row_i = 0;
-        double row = 0.0;
+        float row = 0.0;
         for (; row_i < wall_top; ++row_i, ++row) {
             // ceiling
             char c[4];
-            DoubleVec2 spot;
+            FloatVec2 spot;
             // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
-            double dv = fabs(row/vc_height - 0.5) * vp_height;
-            double spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
+            float dv = fabs(row/vc_height - 0.5) * vp_height;
+            float spot_len = flat_dtp / dv * (temp_room.wall_height - cam.height);
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
-            double ldist = sqrt(spot_len * spot_len + (temp_room.wall_height - cam.height) * (temp_room.wall_height - cam.height));
-            double _;
-            double samplex = modf(spot.x, &_);
+            float ldist = sqrt(spot_len * spot_len + (temp_room.wall_height - cam.height) * (temp_room.wall_height - cam.height));
+            float _;
+            float samplex = modf(spot.x, &_);
             if (samplex < 0) {
                 samplex += 1.0;
             }
-            double sampley = modf(spot.y, &_);
+            float sampley = modf(spot.y, &_);
             if (sampley < 0) {
                 sampley += 1.0;
             }
@@ -346,8 +346,8 @@ void render_run(Image canvas) {
             FColor lc = get_plight_color(cam_light, ldist);
             lc = fcolor_add(lc, global_illum);
             c_sample = fcolor_mul(lc, c_sample);
-            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            // float vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            float z = zbuffer[row_i * virtual_canvas.width + column_i];
             if (z > 0.0) {
                 unsigned char ca[4];
                 get_pixel(virtual_canvas, row_i, column_i, ca);
@@ -363,17 +363,17 @@ void render_run(Image canvas) {
 
         for (; row_i <= wall_bot && row_i < virtual_canvas.height; ++row_i, ++row) {
             // wall
-            double row = (double)row_i;
+            float row = (float)row_i;
             char c[4];
-            double dv = (row / vc_height - 0.5) * vp_height;
+            float dv = (row / vc_height - 0.5) * vp_height;
             dv = dv / flat_dtp * distance;
-            double wall_ydist = temp_room.wall_height - cam.height + dv;
-            double ldist = sqrt(distance * distance + dv * dv);
-            double _;
-            double samplex = wall_xdist / wall_len;
-            double sampley = wall_ydist / temp_room.wall_height;
-            // double samplex = modf(wall_xdist, &_);
-            // double sampley = modf(wall_ydist, &_);
+            float wall_ydist = temp_room.wall_height - cam.height + dv;
+            float ldist = sqrt(distance * distance + dv * dv);
+            float _;
+            float samplex = wall_xdist / wall_len;
+            float sampley = wall_ydist / temp_room.wall_height;
+            // float samplex = modf(wall_xdist, &_);
+            // float sampley = modf(wall_ydist, &_);
             if (sampley < 0.0) {
                 sampley = 0.0;
             }
@@ -381,8 +381,8 @@ void render_run(Image canvas) {
             FColor lc = get_plight_color(cam_light, ldist);
             lc = fcolor_add(lc, global_illum);
             c_sample = fcolor_mul(lc, c_sample);
-            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            // float vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            float z = zbuffer[row_i * virtual_canvas.width + column_i];
             if (distance > z && z > 0.0) {
                 unsigned char ca[4];
                 get_pixel(virtual_canvas, row_i, column_i, ca);
@@ -398,21 +398,21 @@ void render_run(Image canvas) {
 
         for (; row_i < virtual_canvas.height; ++row_i, ++row) {
             // floor
-            double row = (double)row_i;
+            float row = (float)row_i;
             char c[4];
-            DoubleVec2 spot;
+            FloatVec2 spot;
             // printf("row: %lf\n", fabs(row / vc_height) * vp_height);
-            double dv = fabs(row/vc_height - 0.5) * vp_height;
-            double spot_len = flat_dtp / dv * cam.height;
+            float dv = fabs(row/vc_height - 0.5) * vp_height;
+            float spot_len = flat_dtp / dv * cam.height;
             spot.x = ray.dir.x * spot_len + cam.pos.x;
             spot.y = ray.dir.y * spot_len + cam.pos.y;
-            double ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
-            double _;
-            double samplex = modf(spot.x * 0.25, &_);
+            float ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
+            float _;
+            float samplex = modf(spot.x * 0.25, &_);
             if (samplex < 0) {
                 samplex += 1.0;
             }
-            double sampley = modf(spot.y * 0.25, &_);
+            float sampley = modf(spot.y * 0.25, &_);
             if (sampley < 0) {
                 sampley += 1.0;
             }
@@ -420,8 +420,8 @@ void render_run(Image canvas) {
             FColor lc = get_plight_color(cam_light, ldist);
             lc = fcolor_add(lc, global_illum);
             c_sample = fcolor_mul(lc, c_sample);
-            // double vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
-            double z = zbuffer[row_i * virtual_canvas.width + column_i];
+            // float vert_dtp = sqrt(flat_dtp * flat_dtp + dv * dv);
+            float z = zbuffer[row_i * virtual_canvas.width + column_i];
             if (z > 0.0) {
                 unsigned char ca[4];
                 get_pixel(virtual_canvas, row_i, column_i, ca);
@@ -450,27 +450,27 @@ void render_run(Image canvas) {
     }
 }
 
-DoubleVec2 cam_pos_add(DoubleVec2 v) {
+FloatVec2 cam_pos_add(FloatVec2 v) {
     state_update = true;
-    return (DoubleVec2) {
+    return (FloatVec2) {
         .x = cam.pos.x += v.x,
         .y = cam.pos.y += v.y,
     };
 }
 
-double cam_angle_add(double a) {
+float cam_angle_add(float a) {
     state_update = true;
     return cam.angle += a;
 }
 
-FColor get_plight_color(PointLight l, double dist) {
-    double step = l.r / 6.0;
-    double dc = l.r;
-    double ri = 0.0;
+FColor get_plight_color(PointLight l, float dist) {
+    float step = l.r / 6.0;
+    float dc = l.r;
+    float ri = 0.0;
 
     for (; dc > 0.0; dc -= step) {
         if (dist <= dc) {
-            double r = dc / step;
+            float r = dc / step;
             ri = 1.0 / (r * r);
         }
     }

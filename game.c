@@ -3,7 +3,7 @@
 
 // #include "tactics_render.h"
 #include "doom_render.h"
-#include "double_vec2.h"
+#include "float_vec2.h"
 #define KB_MY_DEFAULTS
 #include "keyboard.h"
 #include "game.h"
@@ -15,9 +15,9 @@
 // } Object;
 
 // static Object cursor;
-static DoubleVec2 cam_vel = (DoubleVec2){ .x = 0.0, .y = 0.0 };
-static double cam_angle_vel = 0.0;
-static double cam_angle = 0.0;
+static FloatVec2 cam_vel = (FloatVec2){ .x = 0.0, .y = 0.0 };
+static float cam_angle_vel = 0.0;
+static float cam_angle = 0.0;
 
 void window_destroyed(void) {
     // here we can do the game cleanup
@@ -75,8 +75,8 @@ void key_release(KeyId id, unsigned int scancode) {
 void game_load() {
 }
 
-void game_update(double dt) {
-    DoubleVec2 vel_rot = vec_rotate(cam_vel, cam_angle);
+void game_update(float dt) {
+    FloatVec2 vel_rot = vec_rotate(cam_vel, cam_angle);
     if (vel_rot.x != 0.0 || vel_rot.y != 0.0) {
         cam_pos_add(vec_scalar_product(vel_rot, dt));
     }

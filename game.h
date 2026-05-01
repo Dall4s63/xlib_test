@@ -11,6 +11,6 @@ void key_press(KeyId id, unsigned int scancode, bool is_repeat);
 void key_release(KeyId id, unsigned int scancode);
 
 void game_load();
-void game_update(double dt);
+void game_update(float dt);
 
 #endif
