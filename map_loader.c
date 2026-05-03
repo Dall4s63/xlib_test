@@ -44,8 +44,8 @@ int load_room(char *filename, MapRoom *room) {
     room->floor_spr = sprite_new(sfname);
     int nwalls;
     float wall_height;
-    sscanf(line_buf, "#walls %d %lf\n", &nwalls, &wall_height);
-    // printf("nwalls: %d %lf\n", nwalls, wall_height);
+    sscanf(line_buf, "#walls %d %f\n", &nwalls, &wall_height);
+    // printf("nwalls: %d %f\n", nwalls, wall_height);
 
     room->walls = malloc(sizeof(MapWall) * nwalls);
     room->walls_len = nwalls;
@@ -59,16 +59,16 @@ int load_room(char *filename, MapRoom *room) {
         if (line_buf[0] == '_') {
             a1 = prev_b1;
             a2 = prev_b2;
-            sscanf(line_buf, "_, _, %lf, %lf, %s\n", &b1, &b2, sfname);
+            sscanf(line_buf, "_, _, %f, %f, %s\n", &b1, &b2, sfname);
         } else {
-            sscanf(line_buf, "%lf, %lf, %lf, %lf, %s\n", &a1, &a2, &b1, &b2, sfname);
+            sscanf(line_buf, "%f, %f, %f, %f, %s\n", &a1, &a2, &b1, &b2, sfname);
         }
-        room->walls[i].a = (DoubleVec2) {.x = a1, .y = a2};
-        room->walls[i].b = (DoubleVec2) {.x = b1, .y = b2};
+        room->walls[i].a = (FloatVec2) {.x = a1, .y = a2};
+        room->walls[i].b = (FloatVec2) {.x = b1, .y = b2};
         room->walls[i].spr = sprite_new(sfname);
         prev_b1 = b1;
         prev_b2 = b2;
-        // printf("%lf, %lf, %lf, %lf, \"%s\" %d\n",
+        // printf("%f, %f, %f, %f, \"%s\" %d\n",
         //     a1, a2, b1, b2, sfname, room->walls[i].spr);
     }
 

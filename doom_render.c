@@ -334,11 +334,11 @@ void render_run(Image canvas) {
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             float ldist = sqrt(spot_len * spot_len + (temp_room.wall_height - cam.height) * (temp_room.wall_height - cam.height));
             float _;
-            float samplex = modf(spot.x, &_);
+            float samplex = modff(spot.x, &_);
             if (samplex < 0) {
                 samplex += 1.0;
             }
-            float sampley = modf(spot.y, &_);
+            float sampley = modff(spot.y, &_);
             if (sampley < 0) {
                 sampley += 1.0;
             }
@@ -372,8 +372,8 @@ void render_run(Image canvas) {
             float _;
             float samplex = wall_xdist / wall_len;
             float sampley = wall_ydist / temp_room.wall_height;
-            // float samplex = modf(wall_xdist, &_);
-            // float sampley = modf(wall_ydist, &_);
+            // float samplex = modff(wall_xdist, &_);
+            // float sampley = modff(wall_ydist, &_);
             if (sampley < 0.0) {
                 sampley = 0.0;
             }
@@ -408,11 +408,11 @@ void render_run(Image canvas) {
             spot.y = ray.dir.y * spot_len + cam.pos.y;
             float ldist = sqrt(spot_len * spot_len + cam.height * cam.height);
             float _;
-            float samplex = modf(spot.x * 0.25, &_);
+            float samplex = modff(spot.x * 0.25, &_);
             if (samplex < 0) {
                 samplex += 1.0;
             }
-            float sampley = modf(spot.y * 0.25, &_);
+            float sampley = modff(spot.y * 0.25, &_);
             if (sampley < 0) {
                 sampley += 1.0;
             }
